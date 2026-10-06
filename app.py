@@ -96,15 +96,15 @@ with col1:
     st.subheader("1. Chọn vị trí & Tải ảnh lá")
     
     # 1. Chọn Tỉnh / Thành phố
-    selected_province = st.selectbox("📍 Chọn Tỉnh / Thành phố:", list(LOCATIONS.keys()), index=0)
+    selected_province = st.selectbox(" Chọn Tỉnh / Thành phố:", list(LOCATIONS.keys()), index=0)
     
     # 2. Tự động cập nhật danh sách Quận / Huyện dựa trên Tỉnh đã chọn
     districts_in_province = LOCATIONS[selected_province]
-    selected_district = st.selectbox("🏡 Chọn Quận / Huyện / TP thuộc tỉnh:", list(districts_in_province.keys()), index=0)
+    selected_district = st.selectbox(" Chọn Quận / Huyện / TP thuộc tỉnh:", list(districts_in_province.keys()), index=0)
     
     # Lấy tọa độ GPS chính xác của Quận/Huyện được chọn
     lat, lon = districts_in_province[selected_district]
-    st.caption(f"📍 Tọa độ GPS đã chọn: {lat:.4f}, {lon:.4f}")
+    st.caption(f"Tọa độ GPS đã chọn: {lat:.4f}, {lon:.4f}")
 
     uploaded_file = st.file_uploader("📸 Tải ảnh lá cà chua:", type=["jpg", "jpeg", "png"])
     if uploaded_file:
@@ -116,7 +116,7 @@ with col2:
     if uploaded_file:
         temp, humidity, rain = get_weather(lat, lon)
         
-        st.markdown(f"**📍 Thời tiết thực tế tại {selected_district} ({selected_province}):**")
+        st.markdown(f"** Thời tiết thực tế tại {selected_district} ({selected_province}):**")
         m1, m2, m3 = st.columns(3)
         m1.metric("Nhiệt độ", f"{temp} °C")
         m2.metric("Độ ẩm", f"{humidity} %")
@@ -133,10 +133,10 @@ with col2:
             os.remove(tmp.name)
             
         # Đánh giá nguy cơ dịch tễ
-        st.markdown("**⚡ Đánh giá nguy cơ bùng phát dịch bệnh:**")
+        st.markdown(" Đánh giá nguy cơ bùng phát dịch bệnh:")
         if humidity > 80 and 18 <= temp <= 25:
             st.error("🔴 **CẤP BÁO:** Độ ẩm cao kết hợp nhiệt độ thuận lợi! Nguy cơ bùng phát bệnh mốc sương/đốm lá diện rộng trong 48h.")
-            st.write("👉 **Hành động:** Giảm tưới nước, phun thuốc phòng trừ diện rộng ngay lập tức.")
+            st.write("**Hành động:** Giảm tưới nước, phun thuốc phòng trừ diện rộng ngay lập tức.")
         elif humidity > 70:
             st.warning("🟠 **CẢNH BÁO:** Nguy cơ trung bình. Cần theo dõi sát các luống cây lân cận.")
         else:
