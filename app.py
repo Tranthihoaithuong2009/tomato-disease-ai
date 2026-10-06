@@ -52,14 +52,27 @@ PROVINCES = {
 
 # Hàm tìm tọa độ địa danh chi tiết (Phường/Xã/Huyện)
 def search_location(query):
-    url = f"https://geocoding-api.open-meteo.com/v1/search?name={query}&count=1&language=vi&format=json"
+    # Ưu tiên 1: Dùng OpenStreetMap (Nominatim) hỗ trợ Phường/Xã Việt Nam cực tốt
+    url = f"https://nominatim.openstreetmap.org/search?q={query}&format=json&limit=1"
+    headers = {"User-Agent": "TomatoDiseaseAIApp/1.0"}
     try:
-        res = requests.get(url, timeout=5)
-        if res.status_code == 200 and "results" in res.json():
-            result = res.json()["results"]
-            return result["latitude"], result["longitude"], result.get("name", query)
+        res = requests.get(url, headers=headers, timeout=5)
+        if res.status_code == 200 and len(res.json()) > 0:
+            data = res.json()
+            return float(data["lat"]), float(data["lon"]), data.get("display_name", query)
     except Exception:
         pass
+
+    # Dự phòng 2: Nếu OpenStreetMap bận thì dùng Open-Meteo
+    url_backup = f"https://geocoding-api.open-meteo.com/v1/search?name={query}&count=1&language=vi&format=json"
+    try:
+        res = requests.get(url_backup, timeout=5)
+        if res.status_code == 200 and "results" in res.json():
+            result = res.json()["results"]
+            return float(result["latitude"]), float(result["longitude"]), result.get("name", query)
+    except Exception:
+        pass
+
     return None, None, None
 
 def get_weather(lat, lon):
