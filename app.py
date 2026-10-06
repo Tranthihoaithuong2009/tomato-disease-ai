@@ -179,7 +179,7 @@ with col2:
             st.image(annotated_img, caption="Ảnh khoanh vùng nhận diện YOLOv8", use_container_width=True)
             
             # Bóc tách danh sách các bệnh phát hiện được
-            boxes = results.boxes
+            boxes = results[0].boxes
             detected_list = []
             
             if len(boxes) > 0:
