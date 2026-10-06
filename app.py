@@ -118,7 +118,7 @@ with col2:
             img.save(tmp.name)
             results = model.predict(tmp.name, conf=0.25)
             # Lấy kết quả ảnh đầu tiên và đổi hệ màu BGR -> RGB
-            annotated_img = results.plot()[:, :, ::-1]
+            annotated_img = results[0].plot()[:, :, ::-1]
             st.image(annotated_img, caption="Kết quả nhận diện YOLOv8", use_container_width=True)
             os.remove(tmp.name)
             
