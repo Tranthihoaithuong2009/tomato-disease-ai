@@ -23,7 +23,7 @@ PROVINCES = {
     "Bình Dương": (11.1622, 106.6489), "Bình Phước": (11.751, 106.9184),
     "Bình Thuận": (11.0903, 108.0718), "Cà Mau": (9.1769, 105.15),
     "Cần Thơ": (10.0452, 105.7469), "Cao Bằng": (22.6657, 105.9722),
-    "Đà Nẵng": (16.0544, 108.2022), "Đắk Lắk": (12.6667, 108.05),
+    "Đà Nẵng": (16.0544, 108.2022), "Đắc Lắc": (12.6667, 108.05),
     "Đắk Nông": (12.0042, 107.6875), "Điện Biên": (21.3857, 103.0189),
     "Đồng Nai": (11.0503, 107.037), "Đồng Tháp": (10.4938, 105.6882),
     "Gia Lai": (13.9833, 108.0), "Hà Giang": (22.8233, 104.9839),
@@ -58,7 +58,7 @@ def search_location(query):
         if res.status_code == 200 and "results" in res.json():
             result = res.json()["results"]
             return result["latitude"], result["longitude"], result.get("name", query)
-    except:
+    except Exception:
         pass
     return None, None, None
 
@@ -69,7 +69,7 @@ def get_weather(lat, lon):
         if res.status_code == 200:
             data = res.json()["current"]
             return data["temperature_2m"], data["relative_humidity_2m"], data["rain"]
-    except:
+    except Exception:
         pass
     return 25.0, 85.0, 0.0
 
@@ -94,7 +94,7 @@ with col1:
             loc_display = f"{detailed_loc} ({selected_province})"
             st.caption(f" Đã định vị chính xác tọa độ GPS: {lat:.4f}, {lon:.4f}")
         else:
-            st.caption(" Không tìm thấy tọa độ chi tiết, sử dụng tọa độ trung tâm tỉnh.")
+            st.caption("⚠️ Không tìm thấy tọa độ chi tiết, sử dụng tọa độ trung tâm tỉnh.")
 
     uploaded_file = st.file_uploader("Tải ảnh lá cà chua:", type=["jpg", "jpeg", "png"])
     if uploaded_file:
@@ -116,17 +116,18 @@ with col2:
         # Nhận diện với YOLOv8
         with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
             img.save(tmp.name)
-            results = model.predict(tmp.name, conf=0.25) 
-            annotated_img = results[0].plot()[:, :, ::-1]
+            results = model.predict(tmp.name, conf=0.25)
+            # Lấy kết quả ảnh đầu tiên và đổi hệ màu BGR -> RGB
+            annotated_img = results.plot()[:, :, ::-1]
             st.image(annotated_img, caption="Kết quả nhận diện YOLOv8", use_container_width=True)
             os.remove(tmp.name)
             
         # Đánh giá nguy cơ dịch tễ
-        st.markdown("Đánh giá nguy cơ bùng phát dịch bệnh:")
+        st.markdown("** Đánh giá nguy cơ bùng phát dịch bệnh:**")
         if humidity > 80 and 18 <= temp <= 25:
             st.error("🔴 **CẤP BÁO:** Độ ẩm cao kết hợp nhiệt độ thuận lợi! Nguy cơ bùng phát bệnh mốc sương/đốm lá diện rộng trong 48h.")
-            st.write(" **Lời khuyên:** Giảm tưới nước, phun thuốc phòng trừ diện rộng ngay lập tức.")
+            st.write(" **Hành động:** Giảm tưới nước, phun thuốc phòng trừ diện rộng ngay lập tức.")
         elif humidity > 70:
-            st.warning(" **CẢNH BÁO:** Nguy cơ trung bình. Cần theo dõi sát các luống cây lân cận.")
+            st.warning("🟠 **CẢNH BÁO:** Nguy cơ trung bình. Cần theo dõi sát các luống cây lân cận.")
         else:
-            st.success(" **AN TOÀN:** Điều kiện thời tiết ít nguy cơ lây lan diện rộng.")
+            st.success("🟢 **AN TOÀN:** Điều kiện thời tiết ít nguy cơ lây lan diện rộng.")
