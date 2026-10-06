@@ -8,14 +8,14 @@ import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="Trợ Lý AI Cà Chua", page_icon="🍅", layout="wide")
 
-# Tải mô hình YOLOv8
+# Tải mô hình Deep Learning YOLOv8
 @st.cache_resource
 def load_model():
     return YOLO("best.pt")
 
 model = load_model()
 
-# Từ điển ánh xạ tên lớp YOLO -> Tên tiếng Việt & Phác đồ điều trị
+# Từ điển ánh xạ tên lớp Deep Learning -> Tên tiếng Việt & Phác đồ điều trị
 DISEASE_INFO = {
     "Tomato___Bacterial_spot": {
         "name_vi": "Bệnh đốm vi khuẩn",
@@ -69,7 +69,7 @@ DISEASE_INFO = {
     }
 }
 
-# Cấu trúc Tỉnh/Thành & Quận/Huyện kèm tọa độ GPS
+# Danh sách Tỉnh/Thành & Quận/Huyện kèm tọa độ GPS
 LOCATIONS = {
     "Lâm Đồng": {
         "TP. Đà Lạt": (11.9404, 108.4583),
@@ -85,37 +85,30 @@ LOCATIONS = {
         "Thị xã Ba Đồn": (17.7551, 106.4258),
         "Huyện Bố Trạch": (17.5583, 106.3023),
         "Huyện Lệ Thủy": (17.2281, 106.6841),
-        "Huyện Quảng Ninh": (17.3015, 106.5862),
-        "Huyện Tuyên Hóa": (17.8872, 105.9961),
-        "Huyện Minh Hóa": (17.7712, 105.8882)
+        "Huyện Quảng Ninh": (17.3015, 106.5862)
     },
     "Bắc Giang": {
         "TP. Bắc Giang": (21.2731, 106.1946),
         "Huyện Lục Nam": (21.2825, 106.4021),
         "Huyện Lục Ngạn": (21.3654, 106.5882),
-        "Huyện Hiệp Hòa": (21.3524, 105.9723),
-        "Huyện Lạng Giang": (21.3782, 106.2731)
+        "Huyện Hiệp Hòa": (21.3524, 105.9723)
     },
     "Gia Lai": {
         "TP. Pleiku": (13.9833, 108.0000),
         "Thị xã An Khê": (13.9482, 108.6531),
-        "Huyện Đăk Đoa": (13.9882, 108.1251),
-        "Huyện Chư Sê": (13.6521, 108.1205)
+        "Huyện Đăk Đoa": (13.9882, 108.1251)
     },
     "Hải Dương": {
         "TP. Hải Dương": (20.9382, 106.3211),
-        "TP. Chí Linh": (21.1182, 106.3982),
-        "Huyện Cẩm Giàng": (20.9521, 106.2102)
+        "TP. Chí Linh": (21.1182, 106.3982)
     },
     "Hà Nội": {
         "Quận Ba Đình": (21.0341, 105.8306),
-        "Quận Cầu Giấy": (21.0362, 105.7905),
-        "Huyện Gia Lâm": (21.0182, 105.9421)
+        "Quận Cầu Giấy": (21.0362, 105.7905)
     },
     "TP Hồ Chí Minh": {
         "TP. Thủ Đức": (10.8492, 106.7537),
-        "Quận 1": (10.7756, 106.7004),
-        "Huyện Củ Chi": (11.0062, 106.5121)
+        "Quận 1": (10.7756, 106.7004)
     }
 }
 
@@ -149,7 +142,7 @@ with col1:
         st.image(img, caption="Ảnh gốc tải lên", use_container_width=True)
 
 with col2:
-    st.subheader("2. Kết quả phân tích AI & Thời tiết")
+    st.subheader("2. Kết quả phân tích AI Deep Learning & Thời tiết")
     if uploaded_file:
         temp, humidity, rain = get_weather(lat, lon)
         
@@ -160,25 +153,30 @@ with col2:
         m3.metric("Lượng mưa", f"{rain} mm")
         st.markdown("---")
         
-        # Nhận diện với YOLOv8
+        # Nhận diện với Deep Learning YOLOv8
         with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
             img.save(tmp.name)
-            results = model.predict(tmp.name, conf=0.15)
-            result = results
+            results = model.predict(tmp.name)
+            res = results
             
-            # Lấy ảnh đã khoanh vùng từ YOLO (chuyển BGR sang RGB)
-            annotated_img = result[0].plot()[:, :, ::-1]
-            
-            # Tính toán tên bệnh và độ tin cậy % thật từ YOLO
-            if len(result[0].boxes) > 0:
-                # Lấy khung hình có độ tin cậy cao nhất
-                best_box = max(result.boxes, key=lambda b: float(b.conf))
+            # Kiểm tra mô hình Phân loại (Classification) hay Phát hiện (Detection)
+            if hasattr(res, 'probs') and res.probs is not None:
+                # Dạng Classification Deep Learning (Softmax output)
+                top1_idx = int(res.probs.top1)
+                raw_conf = float(res.probs.top1conf) * 100
+                raw_class_name = model.names[top1_idx]
+                display_img = img
+            elif hasattr(res, 'boxes') and len(res.boxes) > 0:
+                # Dạng Detection Bounding Box
+                best_box = max(res.boxes, key=lambda b: float(b.conf))
                 cls_id = int(best_box.cls)
-                raw_conf = float(best_box.conf) * 100  # Tính % chính xác
+                raw_conf = float(best_box.conf) * 100
                 raw_class_name = model.names[cls_id]
+                display_img = res.plot()[:, :, ::-1]
             else:
                 raw_class_name = "Tomato___healthy"
                 raw_conf = 0.0
+                display_img = img
 
             os.remove(tmp.name)
 
@@ -192,36 +190,31 @@ with col2:
         disease_display_name = info["name_vi"]
         is_healthy = "healthy" in raw_class_name.lower()
 
-        # Hiển thị ảnh kèm Tiêu đề Matplotlib giống hệt hình mẫu
+        # Hiển thị ảnh chuẩn Matplotlib như Dự án mẫu (Cassava)
         fig, ax = plt.subplots(figsize=(6, 6))
-        ax.imshow(annotated_img)
+        ax.imshow(display_img)
         
-        # Chọn màu chữ: Xanh nếu khỏe, Đỏ nếu bị bệnh
         title_color = "green" if is_healthy else "red"
-        
-        if raw_conf > 0:
-            title_text = f"Predicted: {disease_display_name} ({raw_conf:.1f}%)"
-        else:
-            title_text = f"Predicted: {disease_display_name} (Không phát hiện vệt bệnh)"
+        title_text = f"Predicted: {disease_display_name} ({raw_conf:.1f}%)"
             
         ax.set_title(title_text, color=title_color, fontsize=14, fontweight="bold", pad=12)
-        ax.axis("off")  # Ẩn trục tọa độ
+        ax.axis("off")
         
         st.pyplot(fig)
         plt.close(fig)
 
         # Chi tiết phác đồ điều trị
-        st.markdown("### Chi tiết chẩn đoán & Khuyên dùng:")
+        st.markdown("### 📋 Chi tiết chẩn đoán & Khuyên dùng:")
         if is_healthy:
-            st.success(f" **Trạng thái:** {disease_display_name} (Độ tin cậy: {raw_conf:.1f}%)")
-            st.write(f" **Hướng dẫn:** {info['treatment']}")
+            st.success(f"✅ **Trạng thái:** {disease_display_name} (Độ tin cậy Deep Learning: {raw_conf:.1f}%)")
+            st.write(f"💡 **Hướng dẫn:** {info['treatment']}")
         else:
-            st.error(f" **Phát hiện bệnh:** {disease_display_name} (Độ tin cậy: {raw_conf:.1f}%)")
-            st.write(f" **Triệu chứng:** {info['symptoms']}")
-            st.write(f" **Phác đồ điều trị:** {info['treatment']}")
+            st.error(f"⚠️ **Phát hiện bệnh:** {disease_display_name} (Độ tin cậy Deep Learning: {raw_conf:.1f}%)")
+            st.write(f"📌 **Triệu chứng:** {info['symptoms']}")
+            st.write(f"💊 **Phác đồ điều trị:** {info['treatment']}")
 
         st.markdown("---")
-        st.markdown("###  Cảnh báo nguy cơ dịch tễ:")
+        st.markdown("### ⚡ Cảnh báo nguy cơ dịch tễ:")
         if humidity > 80 and 18 <= temp <= 25:
             st.error(f"🔴 **CẤP BÁO:** Độ ẩm ({humidity}%) và Nhiệt độ ({temp}°C) rất dễ làm nấm bệnh bùng phát mạnh trong 24-48h!")
         elif humidity > 70:
