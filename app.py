@@ -122,7 +122,7 @@ with col2:
             os.remove(tmp.name)
             
         # Đánh giá nguy cơ dịch tễ
-        st.markdown("** Đánh giá nguy cơ bùng phát dịch bệnh:**")
+        st.markdown("Đánh giá nguy cơ bùng phát dịch bệnh:")
         if humidity > 80 and 18 <= temp <= 25:
             st.error("🔴 **CẤP BÁO:** Độ ẩm cao kết hợp nhiệt độ thuận lợi! Nguy cơ bùng phát bệnh mốc sương/đốm lá diện rộng trong 48h.")
             st.write(" **Lời khuyên:** Giảm tưới nước, phun thuốc phòng trừ diện rộng ngay lập tức.")
