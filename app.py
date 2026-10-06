@@ -116,8 +116,8 @@ with col2:
         # Nhận diện với YOLOv8
         with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
             img.save(tmp.name)
-            results = model.predict(tmp.name, conf=0.25)
-            annotated_img = results.plot()
+            results = model.predict(tmp.name, conf=0.25) 
+            annotated\_img = results[0].plot()[:, :, ::-1]
             st.image(annotated_img, caption="Kết quả nhận diện YOLOv8", use_container_width=True)
             os.remove(tmp.name)
             
