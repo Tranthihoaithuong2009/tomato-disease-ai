@@ -92,9 +92,9 @@ with col1:
         if searched_lat and searched_lon:
             lat, lon = searched_lat, searched_lon
             loc_display = f"{detailed_loc} ({selected_province})"
-            st.caption(f"📍 Đã định vị chính xác tọa độ GPS: {lat:.4f}, {lon:.4f}")
+            st.caption(f" Đã định vị chính xác tọa độ GPS: {lat:.4f}, {lon:.4f}")
         else:
-            st.caption("⚠️ Không tìm thấy tọa độ chi tiết, sử dụng tọa độ trung tâm tỉnh.")
+            st.caption(" Không tìm thấy tọa độ chi tiết, sử dụng tọa độ trung tâm tỉnh.")
 
     uploaded_file = st.file_uploader("Tải ảnh lá cà chua:", type=["jpg", "jpeg", "png"])
     if uploaded_file:
@@ -106,7 +106,7 @@ with col2:
     if uploaded_file:
         temp, humidity, rain = get_weather(lat, lon)
         
-        st.markdown(f"**📍 Thời tiết thời gian thực tại {loc_display}:**")
+        st.markdown(f"** Thời tiết thời gian thực tại {loc_display}:**")
         m1, m2, m3 = st.columns(3)
         m1.metric("Nhiệt độ", f"{temp} °C")
         m2.metric("Độ ẩm", f"{humidity} %")
@@ -122,11 +122,11 @@ with col2:
             os.remove(tmp.name)
             
         # Đánh giá nguy cơ dịch tễ
-        st.markdown("**⚡ Đánh giá nguy cơ bùng phát dịch bệnh:**")
+        st.markdown("** Đánh giá nguy cơ bùng phát dịch bệnh:**")
         if humidity > 80 and 18 <= temp <= 25:
             st.error("🔴 **CẤP BÁO:** Độ ẩm cao kết hợp nhiệt độ thuận lợi! Nguy cơ bùng phát bệnh mốc sương/đốm lá diện rộng trong 48h.")
-            st.write("👉 **Hành động:** Giảm tưới nước, phun thuốc phòng trừ diện rộng ngay lập tức.")
+            st.write(" **Lời khuyên:** Giảm tưới nước, phun thuốc phòng trừ diện rộng ngay lập tức.")
         elif humidity > 70:
-            st.warning("🟠 **CẢNH BÁO:** Nguy cơ trung bình. Cần theo dõi sát các luống cây lân cận.")
+            st.warning(" **CẢNH BÁO:** Nguy cơ trung bình. Cần theo dõi sát các luống cây lân cận.")
         else:
-            st.success("🟢 **AN TOÀN:** Điều kiện thời tiết ít nguy cơ lây lan diện rộng.")
+            st.success(" **AN TOÀN:** Điều kiện thời tiết ít nguy cơ lây lan diện rộng.")
