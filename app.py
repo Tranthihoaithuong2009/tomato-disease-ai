@@ -14,67 +14,69 @@ def load_model():
 
 model = load_model()
 
-# Danh sách tọa độ trung tâm 63 Tỉnh/Thành Việt Nam
-PROVINCES = {
-    "An Giang": (10.5361, 105.1013), "Bà Rịa - Vũng Tàu": (10.5417, 107.2429),
-    "Bắc Giang": (21.2731, 106.1946), "Bắc Kạn": (22.147, 105.8348),
-    "Bạc Liêu": (9.294, 105.7244), "Bắc Ninh": (21.1861, 106.0763),
-    "Bến Tre": (10.2434, 106.3751), "Bình Định": (13.782, 109.2194),
-    "Bình Dương": (11.1622, 106.6489), "Bình Phước": (11.751, 106.9184),
-    "Bình Thuận": (11.0903, 108.0718), "Cà Mau": (9.1769, 105.15),
-    "Cần Thơ": (10.0452, 105.7469), "Cao Bằng": (22.6657, 105.9722),
-    "Đà Nẵng": (16.0544, 108.2022), "Đắc Lắc": (12.6667, 108.05),
-    "Đắk Nông": (12.0042, 107.6875), "Điện Biên": (21.3857, 103.0189),
-    "Đồng Nai": (11.0503, 107.037), "Đồng Tháp": (10.4938, 105.6882),
-    "Gia Lai": (13.9833, 108.0), "Hà Giang": (22.8233, 104.9839),
-    "Hà Nam": (20.5835, 105.9229), "Hà Nội": (21.0285, 105.8542),
-    "Hà Tĩnh": (18.3428, 105.9057), "Hải Dương": (20.9382, 106.3211),
-    "Hải Phòng": (20.8449, 106.6881), "Hậu Giang": (9.7839, 105.4701),
-    "Hòa Bình": (20.8172, 105.3376), "Hưng Yên": (20.6464, 106.0511),
-    "Khánh Hòa": (12.2388, 109.1967), "Kiên Giang": (10.0125, 105.0809),
-    "Kon Tum": (14.3503, 108.0002), "Lai Châu": (22.3964, 103.4582),
-    "Lâm Đồng": (11.9404, 108.4583), "Lạng Sơn": (21.8537, 106.7615),
-    "Lào Cai": (22.4809, 103.978), "Long An": (10.5333, 106.4082),
-    "Nam Định": (20.4326, 106.1772), "Nghệ An": (19.2342, 104.8387),
-    "Ninh Bình": (20.2539, 105.975), "Ninh Thuận": (11.567, 108.9897),
-    "Phú Thọ": (21.3227, 105.228), "Phú Yên": (13.0882, 109.3087),
-    "Quảng Bình": (17.476, 106.5982), "Quảng Nam": (15.5802, 108.2096),
-    "Quảng Ngãi": (15.1205, 108.7924), "Quảng Ninh": (21.0069, 107.2925),
-    "Quảng Trị": (16.7431, 107.1855), "Sóc Trăng": (9.6033, 105.98),
-    "Sơn La": (21.3258, 103.9188), "Tây Ninh": (11.31, 106.0983),
-    "Thái Bình": (20.4463, 106.3366), "Thái Nguyên": (21.5928, 105.8442),
-    "Thanh Hóa": (19.8067, 105.7851), "Thừa Thiên Huế": (16.4674, 107.5905),
-    "Tiền Giang": (10.4283, 106.3422), "TP Hồ Chí Minh": (10.8231, 106.6297),
-    "Trà Vinh": (9.9348, 106.3458), "Tuyên Quang": (21.8231, 105.2158),
-    "Vĩnh Long": (10.2537, 105.9722), "Vĩnh Phúc": (21.3089, 105.6049),
-    "Yên Bái": (21.705, 104.8814)
+# Cấu trúc dữ liệu Tỉnh/Thành phố và các Quận/Huyện/Thành phố trực thuộc (kèm tọa độ GPS)
+LOCATIONS = {
+    "Lâm Đồng": {
+        "TP. Đà Lạt": (11.9404, 108.4583),
+        "TP. Bảo Lộc": (11.5461, 107.8082),
+        "Huyện Đức Trọng": (11.7282, 108.3742),
+        "Huyện Đơn Dương": (11.8385, 108.5367),
+        "Huyện Lạc Dương": (12.0634, 108.4891),
+        "Huyện Lâm Hà": (11.8329, 108.1884),
+        "Huyện Di Linh": (11.5235, 108.0805)
+    },
+    "Quảng Bình": {
+        "TP. Đồng Hới": (17.4760, 106.5982),
+        "Thị xã Ba Đồn": (17.7551, 106.4258),
+        "Huyện Bố Trạch": (17.5583, 106.3023),
+        "Huyện Lệ Thủy": (17.2281, 106.6841),
+        "Huyện Quảng Ninh": (17.3015, 106.5862),
+        "Huyện Tuyên Hóa": (17.8872, 105.9961),
+        "Huyện Minh Hóa": (17.7712, 105.8882)
+    },
+    "Bắc Giang": {
+        "TP. Bắc Giang": (21.2731, 106.1946),
+        "Huyện Lục Nam": (21.2825, 106.4021),
+        "Huyện Lục Ngạn": (21.3654, 106.5882),
+        "Huyện Hiệp Hòa": (21.3524, 105.9723),
+        "Huyện Lạng Giang": (21.3782, 106.2731),
+        "Huyện Yên Dũng": (21.2012, 106.2415),
+        "Huyện Việt Yên": (21.2801, 106.1102)
+    },
+    "Gia Lai": {
+        "TP. Pleiku": (13.9833, 108.0000),
+        "Thị xã An Khê": (13.9482, 108.6531),
+        "Thị xã Ayun Pa": (13.5412, 108.4421),
+        "Huyện Đăk Đoa": (13.9882, 108.1251),
+        "Huyện Chư Sê": (13.6521, 108.1205),
+        "Huyện Ia Grai": (13.9982, 107.7812)
+    },
+    "Hải Dương": {
+        "TP. Hải Dương": (20.9382, 106.3211),
+        "TP. Chí Linh": (21.1182, 106.3982),
+        "Thị xã Kinh Môn": (21.0021, 106.5201),
+        "Huyện Cẩm Giàng": (20.9521, 106.2102),
+        "Huyện Nam Sách": (21.0012, 106.3382),
+        "Huyện Gia Lộc": (20.8712, 106.3012)
+    },
+    "Hà Nội": {
+        "Quận Ba Đình": (21.0341, 105.8306),
+        "Quận Hoàn Kiếm": (21.0285, 105.8542),
+        "Quận Cầu Giấy": (21.0362, 105.7905),
+        "Huyện Gia Lâm": (21.0182, 105.9421),
+        "Huyện Đông Anh": (21.1382, 105.8421),
+        "Thị xã Sơn Tây": (21.1362, 105.5021)
+    },
+    "TP Hồ Chí Minh": {
+        "TP. Thủ Đức": (10.8492, 106.7537),
+        "Quận 1": (10.7756, 106.7004),
+        "Huyện Củ Chi": (11.0062, 106.5121),
+        "Huyện Hóc Môn": (10.8851, 106.5912),
+        "Huyện Bình Chánh": (10.6862, 106.5782)
+    }
 }
 
-# Hàm tìm tọa độ địa danh chi tiết (Phường/Xã/Huyện)
-def search_location(query):
-    # Ưu tiên 1: Dùng OpenStreetMap (Nominatim) hỗ trợ Phường/Xã Việt Nam cực tốt
-    url = f"https://nominatim.openstreetmap.org/search?q={query}&format=json&limit=1"
-    headers = {"User-Agent": "TomatoDiseaseAIApp/1.0"}
-    try:
-        res = requests.get(url, headers=headers, timeout=5)
-        if res.status_code == 200 and len(res.json()) > 0:
-            data = res.json()
-            return float(data["lat"]), float(data["lon"]), data.get("display_name", query)
-    except Exception:
-        pass
-
-    # Dự phòng 2: Nếu OpenStreetMap bận thì dùng Open-Meteo
-    url_backup = f"https://geocoding-api.open-meteo.com/v1/search?name={query}&count=1&language=vi&format=json"
-    try:
-        res = requests.get(url_backup, timeout=5)
-        if res.status_code == 200 and "results" in res.json():
-            result = res.json()["results"]
-            return float(result["latitude"]), float(result["longitude"]), result.get("name", query)
-    except Exception:
-        pass
-
-    return None, None, None
-
+# Hàm lấy dữ liệu thời tiết thực tế từ Open-Meteo
 def get_weather(lat, lon):
     url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,rain"
     try:
@@ -91,25 +93,20 @@ st.title("🍅 Trợ Lý AI Chẩn Đoán Bệnh & Cảnh Báo Dịch Tễ Cà C
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("1. Thông tin vị trí & Ảnh lá")
+    st.subheader("1. Chọn vị trí & Tải ảnh lá")
     
-    selected_province = st.selectbox("Chọn Tỉnh / Thành phố:", list(PROVINCES.keys()), index=list(PROVINCES.keys()).index("Lâm Đồng"))
-    detailed_loc = st.text_input("Nhập Phường/Xã/Huyện cụ thể (không bắt buộc):", placeholder="Ví dụ: Phường 10 Đà Lạt, Xã Hiệp Thạnh...")
+    # 1. Chọn Tỉnh / Thành phố
+    selected_province = st.selectbox("📍 Chọn Tỉnh / Thành phố:", list(LOCATIONS.keys()), index=0)
     
-    lat, lon = PROVINCES[selected_province]
-    loc_display = selected_province
+    # 2. Tự động cập nhật danh sách Quận / Huyện dựa trên Tỉnh đã chọn
+    districts_in_province = LOCATIONS[selected_province]
+    selected_district = st.selectbox("🏡 Chọn Quận / Huyện / TP thuộc tỉnh:", list(districts_in_province.keys()), index=0)
     
-    if detailed_loc.strip():
-        search_query = f"{detailed_loc}, {selected_province}, Vietnam"
-        searched_lat, searched_lon, found_name = search_location(search_query)
-        if searched_lat and searched_lon:
-            lat, lon = searched_lat, searched_lon
-            loc_display = f"{detailed_loc} ({selected_province})"
-            st.caption(f" Đã định vị chính xác tọa độ GPS: {lat:.4f}, {lon:.4f}")
-        else:
-            st.caption("⚠️ Không tìm thấy tọa độ chi tiết, sử dụng tọa độ trung tâm tỉnh.")
+    # Lấy tọa độ GPS chính xác của Quận/Huyện được chọn
+    lat, lon = districts_in_province[selected_district]
+    st.caption(f"📍 Tọa độ GPS đã chọn: {lat:.4f}, {lon:.4f}")
 
-    uploaded_file = st.file_uploader("Tải ảnh lá cà chua:", type=["jpg", "jpeg", "png"])
+    uploaded_file = st.file_uploader("📸 Tải ảnh lá cà chua:", type=["jpg", "jpeg", "png"])
     if uploaded_file:
         img = Image.open(uploaded_file)
         st.image(img, caption="Ảnh gốc tải lên", use_container_width=True)
@@ -119,7 +116,7 @@ with col2:
     if uploaded_file:
         temp, humidity, rain = get_weather(lat, lon)
         
-        st.markdown(f"** Thời tiết thời gian thực tại {loc_display}:**")
+        st.markdown(f"**📍 Thời tiết thực tế tại {selected_district} ({selected_province}):**")
         m1, m2, m3 = st.columns(3)
         m1.metric("Nhiệt độ", f"{temp} °C")
         m2.metric("Độ ẩm", f"{humidity} %")
@@ -130,16 +127,16 @@ with col2:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
             img.save(tmp.name)
             results = model.predict(tmp.name, conf=0.25)
-            # Lấy kết quả ảnh đầu tiên và đổi hệ màu BGR -> RGB
-            annotated_img = results[0].plot()[:, :, ::-1]
+            # Lấy kết quả ảnh đầu tiên và chuyển hệ màu BGR -> RGB
+            annotated_img = results.plot()[:, :, ::-1]
             st.image(annotated_img, caption="Kết quả nhận diện YOLOv8", use_container_width=True)
             os.remove(tmp.name)
             
         # Đánh giá nguy cơ dịch tễ
-        st.markdown("** Đánh giá nguy cơ bùng phát dịch bệnh:**")
+        st.markdown("**⚡ Đánh giá nguy cơ bùng phát dịch bệnh:**")
         if humidity > 80 and 18 <= temp <= 25:
             st.error("🔴 **CẤP BÁO:** Độ ẩm cao kết hợp nhiệt độ thuận lợi! Nguy cơ bùng phát bệnh mốc sương/đốm lá diện rộng trong 48h.")
-            st.write(" **Hành động:** Giảm tưới nước, phun thuốc phòng trừ diện rộng ngay lập tức.")
+            st.write("👉 **Hành động:** Giảm tưới nước, phun thuốc phòng trừ diện rộng ngay lập tức.")
         elif humidity > 70:
             st.warning("🟠 **CẢNH BÁO:** Nguy cơ trung bình. Cần theo dõi sát các luống cây lân cận.")
         else:
