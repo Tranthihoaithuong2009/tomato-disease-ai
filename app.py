@@ -175,7 +175,7 @@ with col2:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
             img.save(tmp.name)
             results = model.predict(tmp.name, conf=0.25)
-            annotated_img = results.plot()[:, :, ::-1]
+            annotated_img = results[0].plot()[:, :, ::-1]
             st.image(annotated_img, caption="Ảnh khoanh vùng nhận diện YOLOv8", use_container_width=True)
             
             # Bóc tách danh sách các bệnh phát hiện được
