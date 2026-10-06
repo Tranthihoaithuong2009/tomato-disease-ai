@@ -170,7 +170,7 @@ with col2:
             annotated_img = result[0].plot()[:, :, ::-1]
             
             # Tính toán tên bệnh và độ tin cậy % thật từ YOLO
-            if len(result.boxes) > 0:
+            if len(result[0].boxes) > 0:
                 # Lấy khung hình có độ tin cậy cao nhất
                 best_box = max(result.boxes, key=lambda b: float(b.conf))
                 cls_id = int(best_box.cls)
