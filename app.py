@@ -167,7 +167,7 @@ with col2:
             result = results
             
             # Lấy ảnh đã khoanh vùng từ YOLO (chuyển BGR sang RGB)
-            annotated_img = result.plot()[:, :, ::-1]
+            annotated_img = result[0].plot()[:, :, ::-1]
             
             # Tính toán tên bệnh và độ tin cậy % thật từ YOLO
             if len(result.boxes) > 0:
