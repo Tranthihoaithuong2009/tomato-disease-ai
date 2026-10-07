@@ -1,14 +1,20 @@
-import streamlit as st
+import os
+import urllib.request
 import requests
 from PIL import Image
 import torch
 import torch.nn as nn
 from torchvision import models, transforms
 import matplotlib.pyplot as plt
+import streamlit as st
 
 st.set_page_config(page_title="Trợ Lý AI Chẩn Đoán Bệnh Cà Chua", page_icon="🍅", layout="wide")
 
-# 1. Danh sách 63 Tỉnh / Thành Phố Việt Nam kèm tọa độ GPS
+# 1. Đường link tải file trọng số từ GitHub Releases
+MODEL_URL = "https://github.com/Tranthihoaithuong2009/tomato-disease-ai/releases/download/v1.0/tomato_model_best.pth"
+MODEL_PATH = "tomato_model_best.pth"
+
+# 2. Danh sách 63 Tỉnh / Thành Phố Việt Nam kèm tọa độ GPS
 PROVINCES_GPS = {
     "An Giang": (10.5364, 105.1110), "Bà Rịa - Vũng Tàu": (10.5417, 107.2429), "Bắc Giang": (21.2731, 106.1946),
     "Bắc Kạn": (22.1470, 105.8348), "Bạc Liêu": (9.2941, 105.7244), "Bắc Ninh": (21.1861, 106.0763),
@@ -33,7 +39,7 @@ PROVINCES_GPS = {
     "Vĩnh Long": (10.2537, 105.9722), "Vĩnh Phúc": (21.3089, 105.6049), "Yên Bái": (21.7050, 104.8742)
 }
 
-# 2. Ánh xạ 5 lớp bệnh chuẩn huấn luyện từ Roboflow/Colab
+# 3. Ánh xạ 5 lớp bệnh chuẩn từ Roboflow/Colab
 DISEASE_DETAILS = {
     "Bacterial Spot": ("Bệnh Đốm Vi Khuẩn", "Đốm nhỏ màu nâu đen trên lá, viền vàng xung quanh.", "Phun thuốc gốc đồng (Copper Hydroxide, Kasugamycin), tỉa bỏ lá bệnh."),
     "Early Blight": ("Bệnh Đốm Vòng", "Đốm lá có các vòng đồng tâm màu nâu đen.", "Phun Mancozeb, Chlorothalonil hoặc Azoxystrobin."),
@@ -42,10 +48,14 @@ DISEASE_DETAILS = {
     "Yellow Leaf Curl Virus": ("Bệnh Xoăn Vàng Lá Virus", "Lá xoăn ngửa, thu nhỏ lại, rìa lá biến màu vàng.", "Phun diệt bọ phấn trắng (Imidacloprid) và nhổ bỏ triệt để cây bệnh.")
 }
 
-# 3. Nạp mô hình EfficientNetV2-S PyTorch
+# 4. Nạp mô hình EfficientNetV2-S PyTorch (tự động tải từ GitHub Releases nếu chưa có)
 @st.cache_resource
 def load_pytorch_model():
-    checkpoint = torch.load("tomato_model_best.pth", map_location=torch.device('cpu'))
+    if not os.path.exists(MODEL_PATH):
+        with st.spinner("⏳ Đang tải file trọng số mô hình từ GitHub Releases (~85MB)..."):
+            urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+            
+    checkpoint = torch.load(MODEL_PATH, map_location=torch.device('cpu'))
     class_names = checkpoint['class_names']
     
     model = models.efficientnet_v2_s(weights=None)
@@ -59,14 +69,14 @@ def load_pytorch_model():
 
 model, class_names = load_pytorch_model()
 
-# 4. Pipeline xử lý ảnh đầu vào
+# 5. Pipeline xử lý ảnh đầu vào
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
-# 5. Hàm lấy thông tin thời tiết Open-Meteo API
+# 6. Hàm lấy thông tin thời tiết Open-Meteo API
 def get_weather(lat, lon):
     url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,rain"
     try:
@@ -78,7 +88,7 @@ def get_weather(lat, lon):
         pass
     return 25.0, 85.0, 0.0
 
-# 6. Giao diện ứng dụng Web Streamlit
+# 7. Giao diện ứng dụng Web Streamlit
 st.title("🍅 Trợ Lý AI Chẩn Đoán Bệnh Cà Chua (EfficientNetV2)")
 
 col1, col2 = st.columns(2)
@@ -86,10 +96,9 @@ col1, col2 = st.columns(2)
 with col1:
     st.subheader("1. Vị trí nông trại & Tải ảnh lá")
     
-    # Cho phép chọn 63 Tỉnh/Thành phố
-    selected_province = st.selectbox("Chọn Tỉnh / Thành phố:", list(PROVINCES_GPS.keys()), index=34) # Mặc định Lâm Đồng
+    selected_province = st.selectbox(" Chọn Tỉnh / Thành phố:", list(PROVINCES_GPS.keys()), index=34) # Mặc định Lâm Đồng
     lat, lon = PROVINCES_GPS[selected_province]
-    st.caption(f"Tọa độ GPS {selected_province}: Vĩ độ {lat:.4f}, Kinh độ {lon:.4f}")
+    st.caption(f" Tọa độ GPS {selected_province}: Vĩ độ {lat:.4f}, Kinh độ {lon:.4f}")
 
     uploaded_file = st.file_uploader("📸 Tải ảnh lá cà chua cần kiểm tra:", type=["jpg", "jpeg", "png"])
     if uploaded_file:
@@ -99,10 +108,9 @@ with col1:
 with col2:
     st.subheader("2. Kết quả phân tích Deep Learning & Thời tiết")
     if uploaded_file:
-        # Lấy thời tiết thời gian thực
         temp, humidity, rain = get_weather(lat, lon)
         
-        st.markdown(f"**Thời tiết hiện tại tại {selected_province}:**")
+        st.markdown(f"** Thời tiết hiện tại tại {selected_province}:**")
         m1, m2, m3 = st.columns(3)
         m1.metric("Nhiệt độ", f"{temp} °C")
         m2.metric("Độ ẩm", f"{humidity} %")
@@ -134,7 +142,7 @@ with col2:
         plt.close(fig)
 
         # Hiển thị thông tin chẩn đoán & phác đồ
-        st.markdown("Kết quả chẩn đoán chi tiết:")
+        st.markdown("###  Kết quả chẩn đoán chi tiết:")
         if is_healthy:
             st.success(f" **Trạng thái:** {vi_name} (Độ tin cậy: {conf_score:.1f}%)")
             st.write(f" **Hướng dẫn chăm sóc:** {treatment}")
