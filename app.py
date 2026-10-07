@@ -21,7 +21,7 @@ PROVINCES_GPS = {
     "Bến Tre": (10.2432, 106.3751), "Bình Định": (13.7830, 109.2197), "Bình Dương": (11.1604, 106.6521),
     "Bình Phước": (11.7512, 106.9184), "Bình Thuận": (11.0904, 108.0722), "Cà Mau": (9.1769, 105.1524),
     "Cần Thơ": (10.0452, 105.7469), "Cao Bằng": (22.6657, 105.9182), "Đà Nẵng": (16.0544, 108.2022),
-    "Đắk Lắk": (12.6667, 108.0500), "Đắk Nông": (12.0042, 107.6875), "Điện Biên": (21.3842, 103.0232),
+    "Đắc Lắk": (12.6667, 108.0500), "Đắk Nông": (12.0042, 107.6875), "Điện Biên": (21.3842, 103.0232),
     "Đồng Nai": (11.0500, 107.0000), "Đồng Tháp": (10.4938, 105.6413), "Gia Lai": (13.9833, 108.0000),
     "Hà Giang": (22.8233, 104.9839), "Hà Nam": (20.5839, 105.9228), "Hà Nội": (21.0285, 105.8542),
     "Hà Tĩnh": (18.3559, 105.8877), "Hải Dương": (20.9372, 106.3146), "Hải Phòng": (20.8449, 106.6881),
@@ -39,13 +39,48 @@ PROVINCES_GPS = {
     "Vĩnh Long": (10.2537, 105.9722), "Vĩnh Phúc": (21.3089, 105.6049), "Yên Bái": (21.7050, 104.8742)
 }
 
-# 3. Ánh xạ 5 lớp bệnh chuẩn từ Roboflow/Colab
+# 3. Ánh xạ ĐẦY ĐỦ 10 LỚP BỆNH CÀ CHUA CHUẨN
 DISEASE_DETAILS = {
+    # 1. Đốm vi khuẩn
     "Bacterial Spot": ("Bệnh Đốm Vi Khuẩn", "Đốm nhỏ màu nâu đen trên lá, viền vàng xung quanh.", "Phun thuốc gốc đồng (Copper Hydroxide, Kasugamycin), tỉa bỏ lá bệnh."),
+    "Tomato___Bacterial_spot": ("Bệnh Đốm Vi Khuẩn", "Đốm nhỏ màu nâu đen trên lá, viền vàng xung quanh.", "Phun thuốc gốc đồng (Copper Hydroxide, Kasugamycin), tỉa bỏ lá bệnh."),
+    
+    # 2. Đốm vòng
     "Early Blight": ("Bệnh Đốm Vòng", "Đốm lá có các vòng đồng tâm màu nâu đen.", "Phun Mancozeb, Chlorothalonil hoặc Azoxystrobin."),
-    "Healthy": ("Lá Khỏe Mạnh", "Lá xanh tốt, không phát hiện dấu hiệu vết bệnh.", "Tiếp tục chăm sóc, bón phân cân đối."),
+    "Tomato___Early_blight": ("Bệnh Đốm Vòng", "Đốm lá có các vòng đồng tâm màu nâu đen.", "Phun Mancozeb, Chlorothalonil hoặc Azoxystrobin."),
+    
+    # 3. Mốc sương / Sương mai
     "Late Blight": ("Bệnh Mốc Sương (Sương Mai)", "Đốm mọng nước xám đen, mặt dưới lá có lớp mốc trắng.", "CẤP BÁO! Phun Metalaxyl, Dimethomorph hoặc Ridomil Gold."),
-    "Yellow Leaf Curl Virus": ("Bệnh Xoăn Vàng Lá Virus", "Lá xoăn ngửa, thu nhỏ lại, rìa lá biến màu vàng.", "Phun diệt bọ phấn trắng (Imidacloprid) và nhổ bỏ triệt để cây bệnh.")
+    "Tomato___Late_blight": ("Bệnh Mốc Sương (Sương Mai)", "Đốm mọng nước xám đen, mặt dưới lá có lớp mốc trắng.", "CẤP BÁO! Phun Metalaxyl, Dimethomorph hoặc Ridomil Gold."),
+    
+    # 4. Mốc lá
+    "Leaf Mold": ("Bệnh Mốc Lá", "Mặt trên lá xuất hiện các đốm vàng nhạt, mặt dưới có lớp mốc xám nâu.", "Giảm độ ẩm nhà kính, tỉa lá gốc, phun Difenoconazole hoặc Copper Oxychloride."),
+    "Tomato___Leaf_Mold": ("Bệnh Mốc Lá", "Mặt trên lá xuất hiện các đốm vàng nhạt, mặt dưới có lớp mốc xám nâu.", "Giảm độ ẩm nhà kính, tỉa lá gốc, phun Difenoconazole hoặc Copper Oxychloride."),
+    
+    # 5. Đốm lá Septoria
+    "Septoria Leaf Spot": ("Bệnh Đốm Lá Septoria", "Nhiều đốm tròn nhỏ màu xám nhạt với viền đen sẫm trên lá già.", "Tỉa bỏ lá già bị nhiễm, phun Chlorothalonil hoặc Copper Fungicide."),
+    "Tomato___Septoria_leaf_spot": ("Bệnh Đốm Lá Septoria", "Nhiều đốm tròn nhỏ màu xám nhạt với viền đen sẫm trên lá già.", "Tỉa bỏ lá già bị nhiễm, phun Chlorothalonil hoặc Copper Fungicide."),
+    
+    # 6. Nhện đỏ
+    "Spider Mites": ("Bệnh Nhện Đỏ Cắn Phá", "Mặt trên lá lấm chấm đốm vàng/trắng nhỏ, có tơ mỏng ở mặt dưới.", "Phun thuốc trừ nhện (Abamectin, Fenpyroximate), tăng độ ẩm tưới rửa lá."),
+    "Two-spotted spider mite": ("Bệnh Nhện Đỏ Cắn Phá", "Mặt trên lá lấm chấm đốm vàng/trắng nhỏ, có tơ mỏng ở mặt dưới.", "Phun thuốc trừ nhện (Abamectin, Fenpyroximate), tăng độ ẩm tưới rửa lá."),
+    "Tomato___Spider_mites Two-spotted_spider_mite": ("Bệnh Nhện Đỏ Cắn Phá", "Mặt trên lá lấm chấm đốm vàng/trắng nhỏ, có tơ mỏng ở mặt dưới.", "Phun thuốc trừ nhện (Abamectin, Fenpyroximate), tăng độ ẩm tưới rửa lá."),
+    
+    # 7. Đốm mục tiêu / Đốm phấn
+    "Target Spot": ("Bệnh Đốm Mục Tiêu", "Đốm nâu đốm hoại tử tròn có tâm màu xám sáng giống hình bia bắn.", "Tăng khoảng cách trồng, phun Azoxystrobin hoặc Pyraclostrobin."),
+    "Tomato___Target_Spot": ("Bệnh Đốm Mục Tiêu", "Đốm nâu đốm hoại tử tròn có tâm màu xám sáng giống hình bia bắn.", "Tăng khoảng cách trồng, phun Azoxystrobin hoặc Pyraclostrobin."),
+    
+    # 8. Xoăn vàng lá virus
+    "Yellow Leaf Curl Virus": ("Bệnh Xoăn Vàng Lá Virus", "Lá xoăn ngửa, thu nhỏ lại, rìa lá biến màu vàng.", "Phun diệt bọ phấn trắng (Imidacloprid) và nhổ bỏ triệt để cây bệnh."),
+    "Tomato___Tomato_Yellow_Leaf_Curl_Virus": ("Bệnh Xoăn Vàng Lá Virus", "Lá xoăn ngửa, thu nhỏ lại, rìa lá biến màu vàng.", "Phun diệt bọ phấn trắng (Imidacloprid) và nhổ bỏ triệt để cây bệnh."),
+    
+    # 9. Khảm virus
+    "Mosaic Virus": ("Bệnh Khảm Virus (Tomato Mosaic)", "Lá biến dạng khảm loang nổ xanh nhạt - xanh đậm, lá nhăn nheo.", "Tiêu hủy cây bệnh, nhặt cỏ dại, vệ sinh dụng cụ tỉa lá."),
+    "Tomato___Tomato_mosaic_virus": ("Bệnh Khảm Virus (Tomato Mosaic)", "Lá biến dạng khảm loang nổ xanh nhạt - xanh đậm, lá nhăn nheo.", "Tiêu hủy cây bệnh, nhặt cỏ dại, vệ sinh dụng cụ tỉa lá."),
+    
+    # 10. Khỏe mạnh
+    "Healthy": ("Lá Khỏe Mạnh", "Lá xanh tốt, không phát hiện dấu hiệu vết bệnh.", "Tiếp tục chăm sóc, bón phân cân đối."),
+    "Tomato___healthy": ("Lá Khỏe Mạnh", "Lá xanh tốt, không phát hiện dấu hiệu vết bệnh.", "Tiếp tục chăm sóc, bón phân cân đối.")
 }
 
 # 4. Nạp mô hình EfficientNetV2-S PyTorch (tự động tải từ GitHub Releases nếu chưa có)
@@ -126,10 +161,13 @@ with col2:
             
         raw_class = class_names[predicted_idx.item()]
         conf_score = confidence.item() * 100
-        is_healthy = (raw_class == "Healthy")
+        is_healthy = ("Healthy" in raw_class or "healthy" in raw_class)
 
         # Lấy thông tin chi tiết về bệnh
-        vi_name, symptoms, treatment = DISEASE_DETAILS.get(raw_class, (raw_class, "Chưa có thông tin", "Tham khảo cán bộ nông nghiệp."))
+        vi_name, symptoms, treatment = DISEASE_DETAILS.get(
+            raw_class, 
+            (raw_class, "Chưa có thông tin triệu chứng.", "Tham khảo ý kiến cán bộ bảo vệ thực vật.")
+        )
 
         # Trực quan hóa ảnh với Tiêu đề Xanh/Đỏ
         fig, ax = plt.subplots(figsize=(6, 6))
