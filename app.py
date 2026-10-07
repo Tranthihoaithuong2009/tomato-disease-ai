@@ -56,7 +56,6 @@ PROVINCE_SUMMARY = {
     "Tỉnh Vĩnh Long": {"total": 124, "sample": ["Phường 1", "Xã Long Hòa", "Xã Đông Hải", "Xã Long Vĩnh", "Xã Hòa Minh"]}
 }
 
-# Tải file JSON chứa đầy đủ 3.321 xã/phường nếu có trong thư mục project
 FULL_DATA_FILE = "dia_chinh_3321.json"
 ADMIN_FULL_DATA = {}
 
@@ -128,6 +127,9 @@ DISEASE_INFO = {
     }
 }
 
+# Lookup chuẩn hóa tên lớp
+NORMALIZED_DISEASE_INFO = {k.lower().replace("_", "").replace(" ", ""): v for k, v in DISEASE_INFO.items()}
+
 # ---------------------------------------------------------
 # 4. LOAD MODEL TỪ GITHUB RELEASES
 # ---------------------------------------------------------
@@ -167,13 +169,11 @@ except Exception as e:
 st.sidebar.title("📌 Vị Trí Vườn Trồng")
 st.sidebar.info("Ghi nhận địa chính thuộc 34 tỉnh thành & 3.321 xã/phường:")
 
-# 1. Chọn Tỉnh / Thành phố
 selected_province = st.sidebar.selectbox("1. Chọn Tỉnh/Thành phố (34 tỉnh thành):", list(PROVINCE_SUMMARY.keys()))
 
 province_info = PROVINCE_SUMMARY[selected_province]
 st.sidebar.caption(f"ℹ️ Tổng số đơn vị cấp xã: **{province_info['total']} xã/phường/đặc khu**")
 
-# 2. Lấy danh sách xã/phường (từ JSON đầy đủ nếu có, hoặc danh sách gợi ý)
 if selected_province in ADMIN_FULL_DATA:
     ward_options = ADMIN_FULL_DATA[selected_province]
 else:
@@ -217,13 +217,15 @@ if uploaded_file is not None:
     with st.spinner("AI đang phân tích hình ảnh..."):
         with torch.no_grad():
             outputs = model(img_tensor)
-            probabilities = torch.nn.functional.softmax(outputs, dim=0)
-            confidence, predicted_idx = torch.max(probabilities, 0)
+            # SỬA LỖI: Chọn dim=1 để ép đúng kích thước tensor đầu ra
+            probabilities = torch.nn.functional.softmax(outputs, dim=1)
+            confidence, predicted_idx = torch.max(probabilities, 1)
 
     predicted_raw = class_names[predicted_idx.item()]
     conf_percent = confidence.item() * 100
 
-    info = DISEASE_INFO.get(predicted_raw, {
+    pred_key = predicted_raw.lower().replace("_", "").replace(" ", "")
+    info = NORMALIZED_DISEASE_INFO.get(pred_key, {
         "vn_name": predicted_raw,
         "symptoms": "Chưa có thông tin mô tả chi tiết.",
         "remedy": "Tham khảo ý kiến chuyên gia nông nghiệp địa phương."
@@ -231,7 +233,7 @@ if uploaded_file is not None:
 
     with col2:
         st.subheader("📋 Kết Quả Phân Tích")
-        if predicted_raw == "Healthy":
+        if pred_key == "healthy":
             st.success(f"**Kết quả:** {info['vn_name']}")
         else:
             st.error(f"**Kết quả:** {info['vn_name']}")
