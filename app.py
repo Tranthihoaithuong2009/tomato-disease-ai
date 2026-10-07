@@ -223,5 +223,3 @@ if uploaded_file is not None:
 
         st.markdown("### 💊 Hướng Dẫn Điều Trị / Phòng Ngừa:")
         st.info(info["remedy"])
-
-📌 *Giờ ứng dụng của bạn đã hỗ trợ đầy đủ 11 lớp bệnh kèm bộ chọn địa chính 34 tỉnh thành Việt Nam!*
