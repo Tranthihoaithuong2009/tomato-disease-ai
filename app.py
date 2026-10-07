@@ -151,11 +151,20 @@ with col2:
             st.write(f" **Triệu chứng:** {symptoms}")
             st.write(f" **Phác đồ điều trị:** {treatment}")
 
-        st.markdown("---")
-        st.markdown("###  Cảnh báo nguy cơ dịch bệnh theo thời tiết:")
-        if humidity > 80 and 18 <= temp <= 25:
-            st.error(f"🔴 **CẤP BÁO:** Độ ẩm ({humidity}%) và Nhiệt độ ({temp}°C) tại {selected_province} cực kỳ thuận lợi cho nấm Mốc Sương / Đốm Vòng bùng phát!")
-        elif humidity > 70:
-            st.warning(f"🟠 **CẢNH BÁO:** Độ ẩm cao ({humidity}%). Cần làm thông thoáng vườn cà chua.")
-        else:
-            st.success("🟢 **THỜI TIẾT AN TOÀN:** Nguy cơ bùng phát dịch nấm bệnh thấp.")
+st.markdown("---") 
+st.markdown("###  Đánh giá nguy cơ bùng phát &amp; lây lan dịch bệnh:") 
+
+if not is\_healthy: 
+    # Trường hợp lá đã bị bệnh -&gt; Cảnh báo mức độ lây lan 
+    if humidity &gt; 80 and 18 &lt;= temp &lt;= 25: 
+        st.error(f"🔴 \*\*CẤP BÁO LÂY LAN:\*\* Nhiệt độ ({temp}°C) và độ ẩm ({humidity}%) cực kỳ thuận lợi cho vết bệnh này bào tử hóa và bùng phát lây lan nhanh ra toàn bộ vườn!") 
+    elif humidity &gt; 70: 
+        st.warning(f"🟠 \*\*CẢNH BÁO:\*\* Độ ẩm cao ({humidity}%). Bệnh có nguy cơ lây sang các cây lân cận, cần phun thuốc kiểm soát và tỉa bớt lá.") 
+    else:     
+        st.info("🟢 \*\*THỜI TIẾT KHÔ RÁO:\*\* Tốc độ lây lan của vết bệnh sẽ chậm lại.") 
+else: 
+# Trường hợp lá đang khỏe mạnh -&gt; Đánh giá điều kiện môi trường xung quanh 
+    if humidity &gt; 80 and 18 &lt;= temp &lt;= 25: 
+        st.warning(f"🟠 \*\*CẢNH BÁO MÔI TRƯỜNG:\*\* Thời tiết hiện tại ({temp}°C, độ ẩm {humidity}%) rất dễ phát sinh nấm bệnh. Cần chú ý quan sát vườn thường xuyên.") 
+    else: 
+        st.success("🟢 \*\*MÔI TRƯỜNG AN TOÀN:\*\* Điều kiện thời tiết hiện tại ít nguy cơ phát sinh dịch bệnh.")
