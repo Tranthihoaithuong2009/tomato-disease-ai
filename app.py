@@ -52,7 +52,7 @@ DISEASE_DETAILS = {
 @st.cache_resource
 def load_pytorch_model():
     if not os.path.exists(MODEL_PATH):
-        with st.spinner("⏳ Đang tải file trọng số mô hình từ GitHub Releases (~85MB)..."):
+        with st.spinner("Đang tải file trọng số mô hình từ GitHub Releases (~85MB)..."):
             urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
             
     checkpoint = torch.load(MODEL_PATH, map_location=torch.device('cpu'))
@@ -96,11 +96,11 @@ col1, col2 = st.columns(2)
 with col1:
     st.subheader("1. Vị trí nông trại & Tải ảnh lá")
     
-    selected_province = st.selectbox(" Chọn Tỉnh / Thành phố:", list(PROVINCES_GPS.keys()), index=34) # Mặc định Lâm Đồng
+    selected_province = st.selectbox("Chọn Tỉnh / Thành phố:", list(PROVINCES_GPS.keys()), index=34) # Mặc định Lâm Đồng
     lat, lon = PROVINCES_GPS[selected_province]
-    st.caption(f" Tọa độ GPS {selected_province}: Vĩ độ {lat:.4f}, Kinh độ {lon:.4f}")
+    st.caption(f"Tọa độ GPS {selected_province}: Vĩ độ {lat:.4f}, Kinh độ {lon:.4f}")
 
-    uploaded_file = st.file_uploader("📸 Tải ảnh lá cà chua cần kiểm tra:", type=["jpg", "jpeg", "png"])
+    uploaded_file = st.file_uploader("Tải ảnh lá cà chua cần kiểm tra:", type=["jpg", "jpeg", "png"])
     if uploaded_file:
         img = Image.open(uploaded_file).convert("RGB")
         st.image(img, caption="Ảnh gốc tải lên", use_container_width=True)
@@ -110,7 +110,7 @@ with col2:
     if uploaded_file:
         temp, humidity, rain = get_weather(lat, lon)
         
-        st.markdown(f"** Thời tiết hiện tại tại {selected_province}:**")
+        st.markdown(f"**Thời tiết hiện tại tại {selected_province}:**")
         m1, m2, m3 = st.columns(3)
         m1.metric("Nhiệt độ", f"{temp} °C")
         m2.metric("Độ ẩm", f"{humidity} %")
@@ -142,29 +142,28 @@ with col2:
         plt.close(fig)
 
         # Hiển thị thông tin chẩn đoán & phác đồ
-        st.markdown("###  Kết quả chẩn đoán chi tiết:")
+        st.markdown("### Kết quả chẩn đoán chi tiết:")
         if is_healthy:
-            st.success(f" **Trạng thái:** {vi_name} (Độ tin cậy: {conf_score:.1f}%)")
-            st.write(f" **Hướng dẫn chăm sóc:** {treatment}")
+            st.success(f"**Trạng thái:** {vi_name} (Độ tin cậy: {conf_score:.1f}%)")
+            st.write(f"**Hướng dẫn chăm sóc:** {treatment}")
         else:
-            st.error(f" **Phát hiện bệnh:** {vi_name} (Độ tin cậy: {conf_score:.1f}%)")
-            st.write(f" **Triệu chứng:** {symptoms}")
-            st.write(f" **Phác đồ điều trị:** {treatment}")
+            st.error(f"**Phát hiện bệnh:** {vi_name} (Độ tin cậy: {conf_score:.1f}%)")
+            st.write(f"**Triệu chứng:** {symptoms}")
+            st.write(f"**Phác đồ điều trị:** {treatment}")
 
-st.markdown("---")
-st.markdown("###  Đánh giá nguy cơ bùng phát & lây lan dịch bệnh:")
-
-if not is_healthy:
-    # Trường hợp lá đã bị bệnh -> Cảnh báo mức độ lây lan
-    if humidity > 80 and 18 <= temp <= 25:
-        st.error(f"🔴 **CẤP BÁO LÂY LAN:** Nhiệt độ ({temp}°C) và độ ẩm ({humidity}%) cực kỳ thuận lợi cho vết bệnh này bào tử hóa và bùng phát lây lan nhanh ra toàn bộ vườn!")
-    elif humidity > 70:
-        st.warning(f"🟠 **CẢNH BÁO:** Độ ẩm cao ({humidity}%). Bệnh có nguy cơ lây sang các cây lân cận, cần phun thuốc kiểm soát và tỉa bớt lá.")
+        st.markdown("---")
+        st.markdown("### Đánh giá nguy cơ bùng phát & lây lan dịch bệnh:")
+        if not is_healthy:
+            if humidity > 80 and 18 <= temp <= 25:
+                st.error(f"🔴 **CẤP BÁO LÂY LAN:** Nhiệt độ ({temp}°C) và độ ẩm ({humidity}%) cực kỳ thuận lợi cho vết bệnh này bào tử hóa và bùng phát lây lan nhanh ra toàn bộ vườn!")
+            elif humidity > 70:
+                st.warning(f"🟠 **CẢNH BÁO:** Độ ẩm cao ({humidity}%). Bệnh có nguy cơ lây sang các cây lân cận, cần phun thuốc kiểm soát và tỉa bớt lá.")
+            else:
+                st.info("🟢 **THỜI TIẾT KHÔ RÁO:** Tốc độ lây lan của vết bệnh sẽ chậm lại.")
+        else:
+            if humidity > 80 and 18 <= temp <= 25:
+                st.warning(f"🟠 **CẢNH BÁO MÔI TRƯỜNG:** Thời tiết hiện tại ({temp}°C, độ ẩm {humidity}%) rất dễ phát sinh nấm bệnh. Cần chú ý quan sát vườn thường xuyên.")
+            else:
+                st.success("🟢 **MÔI TRƯỜNG AN TOÀN:** Điều kiện thời tiết hiện tại ít nguy cơ phát sinh dịch bệnh.")
     else:
-        st.info("🟢 **THỜI TIẾT KHÔ RÁO:** Tốc độ lây lan của vết bệnh sẽ chậm lại.")
-else:
-    # Trường hợp lá đang khỏe mạnh -> Đánh giá điều kiện môi trường xung quanh
-    if humidity > 80 and 18 <= temp <= 25:
-        st.warning(f"🟠 **CẢNH BÁO MÔI TRƯỜNG:** Thời tiết hiện tại ({temp}°C, độ ẩm {humidity}%) rất dễ phát sinh nấm bệnh. Cần chú ý quan sát vườn thường xuyên.")
-    else:
-        st.success("🟢 **MÔI TRƯỜNG AN TOÀN:** Điều kiện thời tiết hiện tại ít nguy cơ phát sinh dịch bệnh.")
+        st.info("Vui lòng chọn Tỉnh/Thành phố và tải ảnh lá cà chua ở cột bên trái để ứng dụng bắt đầu chẩn đoán.")
