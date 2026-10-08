@@ -1,3 +1,9 @@
+Bạn nói hoàn toàn đúng, tôi xin lỗi vì đã nhầm lẫn. Giao diện tải file thông thường trên trang web GitHub (trên giao diện file repo) bị giới hạn cứng **tối đa 25MB**, trong khi file trọng số PyTorch (`.pth`) của chúng ta thường rộng khoảng **80 - 100MB**.
+
+Dưới đây là **2 giải pháp dứt điểm chuẩn kỹ thuật** xử lý vấn đề file dung lượng lớn:
+
+---
+
 import os
 import requests
 import streamlit as st
@@ -6,7 +12,7 @@ import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
 
-# 1. CẤU HÌNH TRANG STREAMLIT (KHÔNG DÙNG ICON/EMOJI)
+# 1. CẤU HÌNH TRANG STREAMLIT
 st.set_page_config(
     page_title="Chẩn Đoán Bệnh Lá Cà Chua AI",
     page_icon=None,
@@ -15,43 +21,16 @@ st.set_page_config(
 
 # 2. DANH SÁCH 34 TỈNH THÀNH SAU SÁP NHẬP (TỪ 01/07/2025)
 PROVINCES_34 = [
-    "TP Hà Nội",
-    "TP Hồ Chí Minh",
-    "TP Đà Nẵng",
-    "TP Hải Phòng",
-    "TP Cần Thơ",
-    "TP Huế",
-    "Tỉnh An Giang",
-    "Tỉnh Bắc Ninh",
-    "Tỉnh Cao Bằng",
-    "Tỉnh Cà Mau",
-    "Tỉnh Đắk Lắk",
-    "Tỉnh Điện Biên",
-    "Tỉnh Đồng Nai",
-    "Tỉnh Đồng Tháp",
-    "Tỉnh Gia Lai",
-    "Tỉnh Hà Tĩnh",
-    "Tỉnh Hưng Yên",
-    "Tỉnh Khánh Hòa",
-    "Tỉnh Lai Châu",
-    "Tỉnh Lâm Đồng",
-    "Tỉnh Lạng Sơn",
-    "Tỉnh Lào Cai",
-    "Tỉnh Nghệ An",
-    "Tỉnh Ninh Bình",
-    "Tỉnh Phú Thọ",
-    "Tỉnh Quảng Ngãi",
-    "Tỉnh Quảng Ninh",
-    "Tỉnh Quảng Trị",
-    "Tỉnh Sơn La",
-    "Tỉnh Tây Ninh",
-    "Tỉnh Thái Nguyên",
-    "Tỉnh Thanh Hóa",
-    "Tỉnh Tuyên Quang",
-    "Tỉnh Vĩnh Long"
+    "TP Hà Nội", "TP Hồ Chí Minh", "TP Đà Nẵng", "TP Hải Phòng", "TP Cần Thơ", "TP Huế",
+    "Tỉnh An Giang", "Tỉnh Bắc Ninh", "Tỉnh Cao Bằng", "Tỉnh Cà Mau", "Tỉnh Đắk Lắk",
+    "Tỉnh Điện Biên", "Tỉnh Đồng Nai", "Tỉnh Đồng Tháp", "Tỉnh Gia Lai", "Tỉnh Hà Tĩnh",
+    "Tỉnh Hưng Yên", "Tỉnh Khánh Hòa", "Tỉnh Lai Châu", "Tỉnh Lâm Đồng", "Tỉnh Lạng Sơn",
+    "Tỉnh Lào Cai", "Tỉnh Nghệ An", "Tỉnh Ninh Bình", "Tỉnh Phú Thọ", "Tỉnh Quảng Ngãi",
+    "Tỉnh Quảng Ninh", "Tỉnh Quảng Trị", "Tỉnh Sơn La", "Tỉnh Tây Ninh", "Tỉnh Thái Nguyên",
+    "Tỉnh Thanh Hóa", "Tỉnh Tuyên Quang", "Tỉnh Vĩnh Long"
 ]
 
-# 3. CƠ SỞ DỮ LIỆU 11 LỚP BỆNH VÀ BẢN CHẤT BỆNH HỌC
+# 3. CƠ SỞ DỮ LIỆU 11 LỚP BỆNH
 DISEASE_DATABASE = {
     "Bacterial_spot": {
         "vn_name": "Bệnh Đốm Vi Khuẩn (Bacterial Spot)",
@@ -123,7 +102,7 @@ DISEASE_DATABASE = {
 
 NORMALIZED_DB = {k.lower().replace("_", "").replace(" ", "").replace("-", ""): v for k, v in DISEASE_DATABASE.items()}
 
-# 4. HÀM ĐÁNH GIÁ TÌNH TRẠNG DỰA TRÊN MÔI TRƯỜNG & LÁ
+# 4. HÀM ĐÁNH GIÁ TÌNH TRẠNG VÀ PHỤC HỒI
 def generate_tailored_advice(pred_key, temp, humidity, rainfall, leaf_status):
     info = NORMALIZED_DB.get(pred_key, {
         "vn_name": "Không xác định",
@@ -183,7 +162,7 @@ def generate_tailored_advice(pred_key, temp, humidity, rainfall, leaf_status):
 
     return status_report, advice_list
 
-# 5. HÀM NẠP CHECKPOINT CỦA MODEL
+# 5. HÀM NẠP CHECKPOINT DẠNG CHUẨN
 MODEL_URL = "https://github.com/Tranthihoaithuong2009/tomato-disease-ai/releases/download/v1.0/tomato_model_best.pth"
 
 def load_checkpoint_file(file_source):
@@ -214,7 +193,6 @@ def main():
     st.write("Ứng dụng phân tích hình ảnh lá cà chua, kết hợp các thông số thời tiết (nhiệt độ, độ ẩm, lượng mưa) để đưa ra chẩn đoán và hướng khắc phục.")
 
     st.sidebar.title("Vị Trí Và Thời Tiết")
-    
     selected_province = st.sidebar.selectbox("Chọn Tỉnh/Thành phố (34 tỉnh thành):", PROVINCES_34)
     
     st.sidebar.markdown("---")
@@ -234,22 +212,21 @@ def main():
     model = None
     class_names = []
 
-    # 1. Quét tìm tất cả các file có đuôi .pth trong thư mục hiện tại
+    # 1. Tự động kiểm tra file local .pth
     pth_files = [f for f in os.listdir(".") if f.endswith(".pth") and os.path.getsize(f) > 5000000]
     
     if pth_files:
-        # Lấy tên file chuỗi chuẩn xác từ danh sách (ví dụ: "tomato_model_best (3).pth")
         target_file = pth_files.pop(0)
         try:
             model, class_names = load_model_from_path(target_file)
         except Exception:
             model = None
 
-    # 2. Nếu chưa có file local thì tải về từ GitHub Release
+    # 2. Thử tải tự động từ GitHub Release v1.0
     if model is None:
         local_default = "tomato_model_best.pth"
         try:
-            res = requests.get(MODEL_URL, allow_redirects=True, timeout=15)
+            res = requests.get(MODEL_URL, allow_redirects=True, timeout=10)
             if res.status_code == 200 and len(res.content) > 5000000:
                 with open(local_default, "wb") as f:
                     f.write(res.content)
@@ -257,23 +234,25 @@ def main():
         except Exception:
             model = None
 
-    # 3. Nếu vẫn chưa nạp được, cho phép tải file lên trực tiếp qua Sidebar
+    # 3. Hiển thị khung tải file ngay MÀN HÌNH CHÍNH nếu chưa nạp được tự động
     if model is None:
-        st.sidebar.warning("Chưa nạp được file mô hình tự động. Bạn vui lòng chọn file .pth từ máy tính bên dưới:")
-        uploaded_model_file = st.sidebar.file_uploader("Tải file mô hình (.pth):", type=["pth"])
+        st.info("Bước 1: Nạp file mô hình AI (Hỗ trợ file tới 200MB từ máy tính)")
+        uploaded_model_file = st.file_uploader("Chọn file tomato_model_best (3).pth trên máy tính của bạn:", type=["pth"])
+        
         if uploaded_model_file is not None:
             try:
                 model, class_names = load_checkpoint_file(uploaded_model_file)
-                st.sidebar.success("Đã nạp thành công mô hình từ file tải lên!")
+                st.success("Đã nạp mô hình thành công!")
             except Exception as e:
-                st.sidebar.error(f"Lỗi đọc file model: {e}")
-
-    if model is None:
-        st.error("Chưa nạp được mô hình AI. Vui lòng chọn file .pth ở thanh bên trái (Sidebar) hoặc tải file .pth lên GitHub repository.")
-        return
+                st.error(f"Lỗi đọc file mô hình: {e}")
+                return
+        else:
+            return
 
     # Tải ảnh lá cà chua lên kiểm tra
-    uploaded_file = st.file_uploader("Chọn ảnh lá cà chua để kiểm tra (JPG, PNG, JPEG)...", type=["jpg", "png", "jpeg"])
+    st.markdown("---")
+    st.subheader("Bước 2: Tải ảnh lá cà chua lên để chẩn đoán")
+    uploaded_file = st.file_uploader("Chọn ảnh lá cà chua (JPG, PNG, JPEG)...", type=["jpg", "png", "jpeg"])
 
     if uploaded_file is not None:
         image = Image.open(uploaded_file).convert('RGB')
