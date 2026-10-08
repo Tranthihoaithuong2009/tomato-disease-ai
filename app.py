@@ -130,9 +130,9 @@ DISEASE_DATABASE = {
 NORMALIZED_DB = {k.lower().replace("_", "").replace(" ", "").replace("-", ""): v for k, v in DISEASE_DATABASE.items()}
 
 # ---------------------------------------------------------
-# 4. HÀM ĐÁNH GIÁ TÌNH TRẠNG VÀ ĐƯA RA LỜI KHUYÊN TÙY BIẾN
+# 4. HÀM ĐÁNH GIÁ TÌNH TRẠNG DỰA TRÊN MÔI TRƯỜNG & LÁ
 # ---------------------------------------------------------
-def generate_tailored_advice(pred_key, weather_condition, leaf_status, temperature):
+def generate_tailored_advice(pred_key, temp, humidity, rainfall, leaf_status):
     info = NORMALIZED_DB.get(pred_key, {
         "vn_name": "Không xác định",
         "type": "Không rõ",
@@ -144,76 +144,63 @@ def generate_tailored_advice(pred_key, weather_condition, leaf_status, temperatu
     status_report = []
     advice_list = []
 
+    env_summary = f"Điều kiện môi trường: Nhiệt độ {temp}°C, Độ ẩm {humidity}%, Lượng mưa {rainfall} mm."
+    status_report.append(env_summary)
+
     if pred_key == "healthy":
-        if "Héo" in leaf_status and ("Mát mẻ" in weather_condition or temperature <= 28):
-            status_report.append("Tình trạng: Lá bị héo nhẹ do thiếu nước hoặc thiếu ẩm tạm thời.")
-            status_report.append("Khả năng phục hồi: CAO (100%). Do thời tiết đang mát mẻ, cây sẽ phục hồi nhanh chóng sau khi được cấp nước.")
-            advice_list.append("Tưới gốc bổ sung vào buổi sáng sớm hoặc chiều mát. Không cần phun thuốc hóa học.")
-        elif "Héo" in leaf_status and ("Nắng" in weather_condition or temperature > 32):
-            status_report.append("Tình trạng: Lá bị mất nước cấp tính do nhiệt độ cao gây ra.")
-            status_report.append("Khả năng phục hồi: TRUNG BÌNH. Cần che mát kịp thời để tránh cháy chồi.")
-            advice_list.append("Che lưới giảm nắng và tưới giữ ẩm gốc, tránh tưới nước lên lá khi đang nắng gắt.")
+        if "Héo" in leaf_status and temp <= 28 and humidity >= 50:
+            status_report.append("Tình trạng: Lá bị héo nhẹ do thiếu nước hoặc suy kiệt tạm thời.")
+            status_report.append("Khả năng phục hồi: CAO (100%). Thời tiết mát mẻ và độ ẩm tốt sẽ giúp cây phục hồi nhanh chóng sau khi được cấp nước.")
+            advice_list.append("Tưới bổ sung nước vào gốc vào buổi sáng sớm hoặc chiều mát.")
+        elif "Héo" in leaf_status and temp > 32:
+            status_report.append("Tình trạng: Lá bị héo rủ do nhiệt độ cao làm thoát hơi nước cấp tính.")
+            status_report.append("Khả năng phục hồi: TRUNG BÌNH. Cần che mát kịp thời.")
+            advice_list.append("Che lưới giảm nắng và tưới giữ ẩm gốc, tránh tưới trực tiếp lên lá khi trời đang nắng gắt.")
         else:
-            status_report.append("Tình trạng: Lá cà chua sinh trưởng tốt, không phát hiện mầm bệnh nguy hiểm.")
+            status_report.append("Tình trạng: Lá cà chua sinh trưởng tốt, không phát hiện mầm bệnh.")
             status_report.append("Khả năng phục hồi: Hoàn hảo.")
             advice_list.append(info["remedy"])
         return status_report, advice_list
 
     if disease_type == "Virus":
-        status_report.append(f"Tình trạng: Cây đã bị nhiễm {info['vn_name']}.")
-        status_report.append("Khả năng phục hồi: KHÔNG THỂ PHỤC HỒI bằng điều chỉnh thời tiết hay tưới nước.")
+        status_report.append(f"Tình trạng: Cây đã nhiễm {info['vn_name']}.")
+        status_report.append("Khả năng phục hồi: KHÔNG THỂ PHỤC HỒI bằng thời tiết hay tưới nước.")
         advice_list.append(info["remedy"])
-        advice_list.append("Nhổ bỏ và tiêu hủy cây bệnh nặng để ngăn chặn virus lây lan sang các cây khác trong vườn.")
+        advice_list.append("Nhổ bỏ cây nhiễm bệnh để tránh lây lan toàn vườn.")
         return status_report, advice_list
 
     if "Héo" in leaf_status or "Cháy" in leaf_status:
-        if "Mát mẻ" in weather_condition or temperature <= 26:
-            status_report.append(f"Tình trạng: Phát hiện {info['vn_name']} đang thuyên giảm hoặc ở giai đoạn đầu.")
-            status_report.append("Khả năng phục hồi: KHẢ NĂNG PHỤC HỒI CAO. Thời tiết mát mẻ giúp cây giảm mất sức, khi phun thuốc trị nấm/vi khuẩn cây sẽ nhanh ra mầm mới.")
-            advice_list.append("Cắt bỏ phần lá bị bệnh nặng và phun thuốc đặc trị theo hướng dẫn.")
-            advice_list.append("Bón thêm vi lượng hoặc phân bón lá để kích thích cây ra chồi mới.")
-        elif "Mưa" in weather_condition or "Độ ẩm" in weather_condition:
-            status_report.append(f"Tình trạng: {info['vn_name']} đang có nguy cơ bùng phát mạnh do độ ẩm cao.")
-            status_report.append("Khả năng phục hồi: TRUNG BÌNH. Nguy cơ lây lan nhanh nếu không xử lý ngay.")
-            advice_list.append("Ngừng ngay việc tưới nước lên lá. Phun thuốc phòng và trị ngay khi tạnh mưa.")
-            advice_list.append("Khơi thông rãnh thoát nước trong vườn để tránh ngập úng gốc.")
+        if temp <= 26 and rainfall < 20:
+            status_report.append(f"Tình trạng: Phát hiện {info['vn_name']}.")
+            status_report.append("Khả năng phục hồi: KHẢ NĂNG PHỤC HỒI CAO. Thời tiết mát mẻ giúp cây không bị mất sức, khi phun thuốc trị bệnh cây sẽ nhanh hồi phục.")
+            advice_list.append("Tỉa bỏ các lá bệnh nặng và phun thuốc đặc trị theo hướng dẫn.")
+            advice_list.append("Bón bổ sung phân bón lá để kích thích chồi mới.")
+        elif humidity > 80 or rainfall >= 20:
+            status_report.append(f"Tình trạng: {info['vn_name']} có nguy cơ bùng phát mạnh do độ ẩm cao và mưa nhiều ({rainfall} mm).")
+            status_report.append("Khả năng phục hồi: TRUNG BÌNH. Cần xử lý ngay để tránh lây lan.")
+            advice_list.append("Ngừng tưới nước lên lá. Phun thuốc phòng ngừa ngay sau khi tạnh mưa.")
+            advice_list.append("Khơi thông rãnh thoát nước trong vườn.")
         else:
-            status_report.append(f"Tình trạng: {info['vn_name']} kết hợp với nhiệt độ cao làm lá khô nhanh hơn.")
+            status_report.append(f"Tình trạng: {info['vn_name']} phát triển do nhiệt độ cao ({temp}°C).")
             status_report.append("Khả năng phục hồi: TRUNG BÌNH.")
-            advice_list.append("Phun thuốc trị bệnh vào chiều mát và kết hợp che nắng nhẹ cho vườn.")
+            advice_list.append("Phun thuốc trị bệnh vào chiều mát và kết hợp che nắng nhẹ.")
     else:
         status_report.append(f"Tình trạng: Phát hiện {info['vn_name']}.")
-        status_report.append("Khả năng phục hồi: TỐT nếu can thiệp kịp thời.")
+        status_report.append("Khả năng phục hồi: TỐT nếu xử lý kịp thời.")
         advice_list.append(info["remedy"])
 
     return status_report, advice_list
 
 # ---------------------------------------------------------
-# 5. LOAD MODEL TỪ GITHUB RELEASES (KIỂM TRA VÀ TẢI AN TOÀN)
+# 5. LOAD MODEL (TỰ ĐỘNG BỎ QUA TÊN LẺ VÀ ĐỌC FILE .PTH TỰ ĐỘNG)
 # ---------------------------------------------------------
 MODEL_URL = "https://github.com/Tranthihoaithuong2009/tomato-disease-ai/releases/download/v1.0/tomato_model_best.pth"
 
-@st.cache_resource
-def load_model():
-    model_path = "tomato_model_best.pth"
-    
-    # Kiểm tra nếu file chưa tồn tại hoặc bị hỏng/nhỏ hơn 5MB -> Xóa để tải lại
-    if os.path.exists(model_path) and os.path.getsize(model_path) < 5000000:
-        os.remove(model_path)
-        
-    if not os.path.exists(model_path):
-        with st.spinner("Đang tải mô hình AI từ GitHub Release..."):
-            res = requests.get(MODEL_URL, allow_redirects=True)
-            if res.status_code == 200 and len(res.content) > 5000000:
-                with open(model_path, "wb") as f:
-                    f.write(res.content)
-            else:
-                raise RuntimeError(f"Tải mô hình thất bại (Mã lỗi: {res.status_code}). Vui lòng kiểm tra lại file tomato_model_best.pth trên GitHub Release v1.0.")
-
+def load_checkpoint_file(file_source):
     try:
-        checkpoint = torch.load(model_path, map_location=torch.device('cpu'), weights_only=False)
+        checkpoint = torch.load(file_source, map_location=torch.device('cpu'), weights_only=False)
     except TypeError:
-        checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
+        checkpoint = torch.load(file_source, map_location=torch.device('cpu'))
 
     class_names = checkpoint.get('class_names', list(DISEASE_DATABASE.keys()))
     num_classes = len(class_names)
@@ -227,26 +214,27 @@ def load_model():
     model.eval()
     return model, class_names
 
+@st.cache_resource
+def load_model_from_path(model_path):
+    return load_checkpoint_file(model_path)
+
 # ---------------------------------------------------------
 # 6. GIAO DIỆN CHÍNH CỦA ỨNG DỤNG
 # ---------------------------------------------------------
 def main():
     st.title("Chẩn Đoán Bệnh Lá Cà Chua Bằng AI")
-    st.write("Ứng dụng phân tích hình ảnh lá cà chua, kết hợp với tình trạng thời tiết và biểu hiện của lá để đưa ra chẩn đoán và lời khuyên phục hồi chính xác.")
+    st.write("Ứng dụng phân tích hình ảnh lá cà chua, kết hợp các thông số thời tiết (nhiệt độ, độ ẩm, lượng mưa) để đưa ra chẩn đoán và hướng khắc phục.")
 
-    st.sidebar.title("Vị Trí Và Môi Trường")
+    st.sidebar.title("Vị Trí Và Thời Tiết")
     
     selected_province = st.sidebar.selectbox("Chọn Tỉnh/Thành phố (34 tỉnh thành):", PROVINCES_34)
     
     st.sidebar.markdown("---")
-    st.sidebar.subheader("Thông Tin Môi Trường Và Biểu Hiện Lá")
+    st.sidebar.subheader("Thông Số Môi Trường Vườn Trồng")
     
-    weather_condition = st.sidebar.selectbox(
-        "Thời tiết hiện tại:",
-        ["Mát mẻ / Ôn hòa", "Nắng ói / Nắng gắt", "Mưa nhiều / Độ ẩm cao"]
-    )
-    
-    temperature = st.sidebar.slider("Nhiệt độ môi trường (°C):", min_value=15, max_value=42, value=25)
+    temp = st.sidebar.slider("Nhiệt độ (°C):", min_value=10, max_value=45, value=25)
+    humidity = st.sidebar.slider("Độ ẩm (%):", min_value=20, max_value=100, value=75)
+    rainfall = st.sidebar.number_input("Lượng mưa (mm):", min_value=0.0, max_value=300.0, value=0.0, step=5.0)
     
     leaf_status = st.sidebar.selectbox(
         "Biểu hiện ngoại quan của lá:",
@@ -254,14 +242,45 @@ def main():
     )
 
     st.sidebar.markdown("---")
-    st.sidebar.write(f"Khu vực: {selected_province}")
-    st.sidebar.write(f"Thời tiết: {weather_condition} ({temperature}°C)")
-    st.sidebar.write(f"Biểu hiện lá: {leaf_status}")
+    
+    # Tự động quét tất cả các file .pth có sẵn trong thư mục hiện tại
+    model = None
+    class_names = []
+    
+    pth_files = [f for f in os.listdir(".") if f.endswith(".pth") and os.path.getsize(f) > 5000000]
+    
+    if pth_files:
+        target_path = pth_files
+        try:
+            model, class_names = load_model_from_path(target_path)
+        except Exception:
+            model = None
 
-    try:
-        model, class_names = load_model()
-    except Exception as e:
-        st.error(f"Lỗi khi tải mô hình AI: {e}")
+    # Nếu chưa có file local thì tải về từ GitHub Release
+    if model is None:
+        local_default = "tomato_model_best.pth"
+        try:
+            res = requests.get(MODEL_URL, allow_redirects=True, timeout=15)
+            if res.status_code == 200 and len(res.content) > 5000000:
+                with open(local_default, "wb") as f:
+                    f.write(res.content)
+                model, class_names = load_model_from_path(local_default)
+        except Exception:
+            model = None
+
+    # Nạp trực tiếp file tải lên từ Sidebar (nhận diện mọi tên file như tomato_model_best (3).pth)
+    if model is None:
+        st.sidebar.warning("Chưa tìm thấy file mô hình. Bạn chọn file .pth trên máy tính để nạp trực tiếp:")
+        uploaded_model_file = st.sidebar.file_uploader("Tải file mô hình (.pth):", type=["pth"])
+        if uploaded_model_file is not None:
+            try:
+                model, class_names = load_checkpoint_file(uploaded_model_file)
+                st.sidebar.success("Đã nạp thành công mô hình từ file tải lên!")
+            except Exception as e:
+                st.sidebar.error(f"Lỗi đọc file model: {e}")
+
+    if model is None:
+        st.error("Chưa nạp được mô hình AI. Vui lòng chọn file .pth ở thanh bên trái (Sidebar) hoặc tải file lên GitHub.")
         return
 
     uploaded_file = st.file_uploader("Chọn ảnh lá cà chua để kiểm tra (JPG, PNG, JPEG)...", type=["jpg", "png", "jpeg"])
@@ -298,7 +317,7 @@ def main():
             "remedy": "Tham khảo ý kiến chuyên gia nông nghiệp địa phương."
         })
 
-        status_reports, tailored_advices = generate_tailored_advice(pred_key, weather_condition, leaf_status, temperature)
+        status_reports, tailored_advices = generate_tailored_advice(pred_key, temp, humidity, rainfall, leaf_status)
 
         with col2:
             st.subheader("Kết Quả Chẩn Đoán AI")
@@ -312,11 +331,17 @@ def main():
             st.write(f"Khu vực ghi nhận: {selected_province}")
 
             st.markdown("---")
+            st.markdown("### Thông Số Thời Tiết Đã Ghi Nhận:")
+            st.write(f"- Nhiệt độ: {temp}°C")
+            st.write(f"- Độ ẩm: {humidity}%")
+            st.write(f"- Lượng mưa: {rainfall} mm")
+
+            st.markdown("---")
             st.markdown("### Triệu Chứng Đặc Trưng:")
             st.write(info["symptoms"])
 
             st.markdown("---")
-            st.markdown("### Biểu Hiện & Khả Năng Phục Hồi:")
+            st.markdown("### Đánh Giá Tình Trạng & Khả Năng Phục Hồi:")
             for report in status_reports:
                 st.write(f"- {report}")
 
