@@ -189,19 +189,27 @@ def generate_tailored_advice(pred_key, weather_condition, leaf_status, temperatu
     return status_report, advice_list
 
 # ---------------------------------------------------------
-# 5. LOAD MODEL TỪ GITHUB RELEASES (KHẮC PHỤC LỖI PYTORCH 2.6)
+# 5. LOAD MODEL TỪ GITHUB RELEASES (KIỂM TRA VÀ TẢI AN TOÀN)
 # ---------------------------------------------------------
 MODEL_URL = "https://github.com/Tranthihoaithuong2009/tomato-disease-ai/releases/download/v1.0/tomato_model_best.pth"
 
 @st.cache_resource
 def load_model():
     model_path = "tomato_model_best.pth"
-    if not os.path.exists(model_path):
-        with st.spinner("Đang tải mô hình AI từ GitHub..."):
-            res = requests.get(MODEL_URL)
-            with open(model_path, "wb") as f:
-                f.write(res.content)
     
+    # Kiểm tra nếu file chưa tồn tại hoặc bị hỏng/nhỏ hơn 5MB -> Xóa để tải lại
+    if os.path.exists(model_path) and os.path.getsize(model_path) < 5000000:
+        os.remove(model_path)
+        
+    if not os.path.exists(model_path):
+        with st.spinner("Đang tải mô hình AI từ GitHub Release..."):
+            res = requests.get(MODEL_URL, allow_redirects=True)
+            if res.status_code == 200 and len(res.content) > 5000000:
+                with open(model_path, "wb") as f:
+                    f.write(res.content)
+            else:
+                raise RuntimeError(f"Tải mô hình thất bại (Mã lỗi: {res.status_code}). Vui lòng kiểm tra lại file tomato_model_best.pth trên GitHub Release v1.0.")
+
     try:
         checkpoint = torch.load(model_path, map_location=torch.device('cpu'), weights_only=False)
     except TypeError:
