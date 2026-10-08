@@ -248,7 +248,7 @@ def get_ai_model():
 
 
 def main():
-    st.title("Chẩn Đoán Bệnh Lá Cà Chua Bằng AI")
+    st.title("Hệ Thống Chẩn Đoán Bệnh Lá Cà Chua Dựa Trên Hình Ảnh, Thời Tiết Tại Vị Trí Trồng")
     st.write("Ứng dụng tự động chẩn đoán bệnh cây cà chua, tra cứu thời tiết thời gian thực và dự báo nguy cơ lây lan dịch bệnh.")
     st.markdown("---")
 
@@ -268,7 +268,6 @@ def main():
     # BƯỚC 2: TẢI ẢNH LÁ CÀ CHUA
     st.subheader("2. Chọn ảnh lá cà chua")
     uploaded_file = st.file_uploader(
-        "Tải ảnh lá cà chua từ máy tính hoặc điện thoại (JPG, PNG, JPEG):",
         type=["jpg", "png", "jpeg"]
     )
 
