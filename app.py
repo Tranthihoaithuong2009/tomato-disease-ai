@@ -1,9 +1,3 @@
-Bạn nói hoàn toàn đúng, tôi xin lỗi vì đã nhầm lẫn. Giao diện tải file thông thường trên trang web GitHub (trên giao diện file repo) bị giới hạn cứng **tối đa 25MB**, trong khi file trọng số PyTorch (`.pth`) của chúng ta thường rộng khoảng **80 - 100MB**.
-
-Dưới đây là **2 giải pháp dứt điểm chuẩn kỹ thuật** xử lý vấn đề file dung lượng lớn:
-
----
-
 import os
 import requests
 import streamlit as st
