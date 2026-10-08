@@ -8,7 +8,8 @@ from PIL import Image
 
 # 1. CẤU HÌNH TRANG STREAMLIT
 st.set_page_config(
-    page_title="Chẩn Đoán Bệnh Lá Cà Chua AI",
+    page_title="Hệ Thống Chẩn Đoán Bệnh Về Lá Cà Chua",
+    page_icon="loopy.png
     page_icon=None,
     layout="wide"
 )
