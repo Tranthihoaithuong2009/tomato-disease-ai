@@ -268,7 +268,7 @@ def main():
    # BƯỚC 2: TẢI ẢNH LÁ CÀ CHUA 
     st.subheader("2. Chọn ảnh lá cà chua") 
     uploaded_file = st.file_uploader( 
-        "Chọn ảnh",
+        "Chọn ảnh lá cà chua từ thiết bị của bạn:",
         type=["jpg", "png", "jpeg"], 
     )
     
