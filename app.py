@@ -14,6 +14,20 @@ st.set_page_config(
     layout="centered"
 )
 
+# Ẩn giao diện mặc định của Streamlit
+hide_streamlit_style = """ 
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .stDeployButton {display:none;}
+    div[data-testid="stDecoration"] {display:none;}
+    div[data-testid="stStatusWidget"] {display:none;}   
+    div[data-testid="stHeader"] {display:none;}
+    </style>
+"""
+st.markdown(hide\_streamlit\_style, unsafe\_allow\_html=True)
+
 # 2. Bảng tọa độ địa lí của các tỉnh thành ở Việt Nam
 
 PROVINCE_COORDS = {
