@@ -265,12 +265,13 @@ def main():
 
     st.markdown("---")
 
-    # BƯỚC 2: TẢI ẢNH LÁ CÀ CHUA
-    st.subheader("2. Chọn ảnh lá cà chua")
-    uploaded_file = st.file_uploader(
-        type=["jpg", "png", "jpeg"]
+   # BƯỚC 2: TẢI ẢNH LÁ CÀ CHUA 
+    st.subheader("2. Chọn ảnh lá cà chua") 
+    uploaded_file = st.file_uploader( 
+        "Chọn ảnh",
+        type=["jpg", "png", "jpeg"], 
     )
-
+    
     if uploaded_file is not None:
         st.markdown("---")
         st.subheader("3. Kết Quả Phân Tích Chi Tiết")
