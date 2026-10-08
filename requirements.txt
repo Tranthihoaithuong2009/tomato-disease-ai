@@ -1,6 +1,6 @@
-streamlit 
-torch 
-torchvision 
-Pillow 
-requests 
+streamlit
+torch
+torchvision
+Pillow
+requests
 pandas
