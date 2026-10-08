@@ -327,16 +327,16 @@ def main():
             else:
                 st.error(f"**Kết quả:** {info['vn_name']}")
 
-            st.metric(label="Độ tin cậy của AI", value=f"{conf_percent:.2f}%")
+            st.metric(label="Độ tin cậy:", value=f"{conf_percent:.2f}%")
             st.write(f"**Tác nhân gây bệnh:** {info['type']}")
             st.write(f"**Vị trí địa lý:** {selected_province} (Tọa độ: {lat}°N, {lon}°E)")
 
         st.markdown("---")
         
         # BẢNG THÔNG TIN THỜI TIẾT THỜI GIAN THỰC
-        st.subheader("Thông Số Thời Tiết Thời Gian Thực Tại Địa Phương")
+        st.subheader("Thông Tin Về Thời Tiết Tại Địa Phương")
         w_col1, w_col2, w_col3 = st.columns(3)
-        w_col1.metric("Nhiệt độ hiện tại", f"{temp} °C")
+        w_col1.metric("Nhiệt độ", f"{temp} °C")
         w_col2.metric("Độ ẩm không khí", f"{humidity} %")
         w_col3.metric("Lượng mưa", f"{rain} mm")
 
