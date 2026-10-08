@@ -1,23 +1,19 @@
+import os
+import requests
 import streamlit as st
 import torch
 import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
-import requests
-import os
 
-# ---------------------------------------------------------
 # 1. CẤU HÌNH TRANG STREAMLIT (KHÔNG DÙNG ICON/EMOJI)
-# ---------------------------------------------------------
 st.set_page_config(
     page_title="Chẩn Đoán Bệnh Lá Cà Chua AI",
     page_icon=None,
     layout="wide"
 )
 
-# ---------------------------------------------------------
 # 2. DANH SÁCH 34 TỈNH THÀNH SAU SÁP NHẬP (TỪ 01/07/2025)
-# ---------------------------------------------------------
 PROVINCES_34 = [
     "TP Hà Nội",
     "TP Hồ Chí Minh",
@@ -55,9 +51,7 @@ PROVINCES_34 = [
     "Tỉnh Vĩnh Long"
 ]
 
-# ---------------------------------------------------------
 # 3. CƠ SỞ DỮ LIỆU 11 LỚP BỆNH VÀ BẢN CHẤT BỆNH HỌC
-# ---------------------------------------------------------
 DISEASE_DATABASE = {
     "Bacterial_spot": {
         "vn_name": "Bệnh Đốm Vi Khuẩn (Bacterial Spot)",
@@ -129,9 +123,7 @@ DISEASE_DATABASE = {
 
 NORMALIZED_DB = {k.lower().replace("_", "").replace(" ", "").replace("-", ""): v for k, v in DISEASE_DATABASE.items()}
 
-# ---------------------------------------------------------
 # 4. HÀM ĐÁNH GIÁ TÌNH TRẠNG DỰA TRÊN MÔI TRƯỜNG & LÁ
-# ---------------------------------------------------------
 def generate_tailored_advice(pred_key, temp, humidity, rainfall, leaf_status):
     info = NORMALIZED_DB.get(pred_key, {
         "vn_name": "Không xác định",
@@ -191,9 +183,7 @@ def generate_tailored_advice(pred_key, temp, humidity, rainfall, leaf_status):
 
     return status_report, advice_list
 
-# ---------------------------------------------------------
-# 5. LOAD MODEL (TỰ ĐỘNG BỎ QUA TÊN LẺ VÀ ĐỌC FILE .PTH TỰ ĐỘNG)
-# ---------------------------------------------------------
+# 5. HÀM NẠP CHECKPOINT CỦA MODEL
 MODEL_URL = "https://github.com/Tranthihoaithuong2009/tomato-disease-ai/releases/download/v1.0/tomato_model_best.pth"
 
 def load_checkpoint_file(file_source):
@@ -218,9 +208,7 @@ def load_checkpoint_file(file_source):
 def load_model_from_path(model_path):
     return load_checkpoint_file(model_path)
 
-# ---------------------------------------------------------
-# 6. GIAO DIỆN CHÍNH CỦA ỨNG DỤNG
-# ---------------------------------------------------------
+# 6. GIAO DIỆN CHÍNH
 def main():
     st.title("Chẩn Đoán Bệnh Lá Cà Chua Bằng AI")
     st.write("Ứng dụng phân tích hình ảnh lá cà chua, kết hợp các thông số thời tiết (nhiệt độ, độ ẩm, lượng mưa) để đưa ra chẩn đoán và hướng khắc phục.")
@@ -243,20 +231,21 @@ def main():
 
     st.sidebar.markdown("---")
     
-    # Tự động quét tất cả các file .pth có sẵn trong thư mục hiện tại
     model = None
     class_names = []
-    
+
+    # 1. Quét tìm tất cả các file có đuôi .pth trong thư mục hiện tại
     pth_files = [f for f in os.listdir(".") if f.endswith(".pth") and os.path.getsize(f) > 5000000]
     
     if pth_files:
-        target_path = pth_files
+        # Lấy tên file chuỗi chuẩn xác từ danh sách (ví dụ: "tomato_model_best (3).pth")
+        target_file = pth_files.pop(0)
         try:
-            model, class_names = load_model_from_path(target_path)
+            model, class_names = load_model_from_path(target_file)
         except Exception:
             model = None
 
-    # Nếu chưa có file local thì tải về từ GitHub Release
+    # 2. Nếu chưa có file local thì tải về từ GitHub Release
     if model is None:
         local_default = "tomato_model_best.pth"
         try:
@@ -268,9 +257,9 @@ def main():
         except Exception:
             model = None
 
-    # Nạp trực tiếp file tải lên từ Sidebar (nhận diện mọi tên file như tomato_model_best (3).pth)
+    # 3. Nếu vẫn chưa nạp được, cho phép tải file lên trực tiếp qua Sidebar
     if model is None:
-        st.sidebar.warning("Chưa tìm thấy file mô hình. Bạn chọn file .pth trên máy tính để nạp trực tiếp:")
+        st.sidebar.warning("Chưa nạp được file mô hình tự động. Bạn vui lòng chọn file .pth từ máy tính bên dưới:")
         uploaded_model_file = st.sidebar.file_uploader("Tải file mô hình (.pth):", type=["pth"])
         if uploaded_model_file is not None:
             try:
@@ -280,9 +269,10 @@ def main():
                 st.sidebar.error(f"Lỗi đọc file model: {e}")
 
     if model is None:
-        st.error("Chưa nạp được mô hình AI. Vui lòng chọn file .pth ở thanh bên trái (Sidebar) hoặc tải file lên GitHub.")
+        st.error("Chưa nạp được mô hình AI. Vui lòng chọn file .pth ở thanh bên trái (Sidebar) hoặc tải file .pth lên GitHub repository.")
         return
 
+    # Tải ảnh lá cà chua lên kiểm tra
     uploaded_file = st.file_uploader("Chọn ảnh lá cà chua để kiểm tra (JPG, PNG, JPEG)...", type=["jpg", "png", "jpeg"])
 
     if uploaded_file is not None:
