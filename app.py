@@ -9,7 +9,7 @@ from PIL import Image
 # 1. CẤU HÌNH TRANG STREAMLIT
 st.set_page_config(
     page_title="Hệ Thống Chẩn Đoán Bệnh Về Lá Cà Chua",
-    page_icon="https://muctim.tuoitre.vn/nang-hai-ly-hong-loopy-bat-ngo-tro-thanh-sieu-sao-meme-101240728203216769.htm",
+    page_icon="loopy.png",
     layout="wide"
 )
 
