@@ -26,7 +26,7 @@ hide_streamlit_style = """
     div[data-testid="stHeader"] {display:none;}
     </style>
 """
-st.markdown(hide\_streamlit\_style, unsafe\_allow\_html=True)
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 # 2. Bảng tọa độ địa lí của các tỉnh thành ở Việt Nam
 
