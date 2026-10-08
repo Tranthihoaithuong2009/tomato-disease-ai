@@ -6,18 +6,16 @@ import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
 
-# ---------------------------------------------------------
-# 1. CẤU HÌNH TRANG STREAMLIT (CĂN GIỮA, KHÔNG DÙNG SIDEBAR)
-# ---------------------------------------------------------
+# 1. Cấu hình
+
 st.set_page_config(
     page_title="Chẩn Đoán Bệnh Lá Cà Chua AI",
     page_icon="icon.png",
     layout="centered"
 )
 
-# ---------------------------------------------------------
-# 2. BẢNG TỌA ĐỘ ĐỊA LÝ 34 TỈNH THÀNH VIỆT NAM (SAU SÁP NHẬP)
-# ---------------------------------------------------------
+# 2. Bảng tọa độ địa lí của các tỉnh thành ở Việt Nam
+
 PROVINCE_COORDS = {
     "TP Hà Nội": {"lat": 21.0285, "lon": 105.8542},
     "TP Hồ Chí Minh": {"lat": 10.8231, "lon": 106.6297},
@@ -55,9 +53,9 @@ PROVINCE_COORDS = {
     "Tỉnh Vĩnh Long": {"lat": 10.2537, "lon": 105.9722}
 }
 
-# ---------------------------------------------------------
-# 3. CƠ SỞ DỮ LIỆU 11 LỚP BỆNH VÀ BẢN CHẤT BỆNH HỌC
-# ---------------------------------------------------------
+
+# 3. CSDL của 11 loại bệnh và học các loại bệnh
+
 DISEASE_DATABASE = {
     "Bacterial_spot": {
         "vn_name": "Bệnh Đốm Vi Khuẩn (Bacterial Spot)",
@@ -129,9 +127,9 @@ DISEASE_DATABASE = {
 
 NORMALIZED_DB = {k.lower().replace("_", "").replace(" ", "").replace("-", ""): v for k, v in DISEASE_DATABASE.items()}
 
-# ---------------------------------------------------------
-# 4. HÀM LẤY THỜI TIẾT THỜI GIAN THỰC THEO TỌA ĐỘ
-# ---------------------------------------------------------
+
+# 4. Hàm lấy thời tiết theo tọa độ địa lí trên api
+
 def get_realtime_weather(lat, lon):
     try:
         url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,rain"
@@ -146,9 +144,8 @@ def get_realtime_weather(lat, lon):
         pass
     return 28.5, 80.0, 0.0
 
-# ---------------------------------------------------------
-# 5. HÀM ĐÁNH GIÁ KHẢ NĂNG LÂY LAN TRONG TƯƠNG LAI
-# ---------------------------------------------------------
+# 5. Hàm đánh giá khả năng lây lan của bệnh trong tương lai:
+
 def evaluate_spread_forecast(pred_key, temp, humidity, rain):
     info = NORMALIZED_DB.get(pred_key, {
         "vn_name": "Không xác định",
@@ -204,9 +201,8 @@ def evaluate_spread_forecast(pred_key, temp, humidity, rain):
 
     return "TRUNG BÌNH", "Cần theo dõi sát sao biểu hiện của vườn trong các ngày tới."
 
-# ---------------------------------------------------------
-# 6. TỰ ĐỘNG NẠP MÔ HÌNH AI PHÍA BACKEND (NGƯỜI DÙNG KHÔNG CẦN NẠP)
-# ---------------------------------------------------------
+# 6. ADD MÔ HÌNH AI
+
 MODEL_URL = "https://github.com/Tranthihoaithuong2009/tomato-disease-ai/releases/download/v1.0/tomato_model_best.pth"
 
 def load_checkpoint_file(file_source):
@@ -229,7 +225,7 @@ def load_checkpoint_file(file_source):
 
 @st.cache_resource
 def get_ai_model():
-    # Tự động nạp file .pth có sẵn trong repo (ví dụ tomato_model_best (3).pth hoặc tomato_model_best.pth)
+    # Tự động nạp file .pth có sẵn trong repo
     pth_files = [f for f in os.listdir(".") if f.endswith(".pth") and os.path.getsize(f) > 5000000]
     if pth_files:
         try:
@@ -247,9 +243,10 @@ def get_ai_model():
 
     return load_checkpoint_file(local_default)
 
-# ---------------------------------------------------------
-# 7. GIAO DIỆN CHÍNH TRÊN TRANG WEB (TẤT CẢ Ở GIỮA, KHÔNG SIDEBAR)
-# ---------------------------------------------------------
+
+# 7. GIAO DIỆN CHÍNH TRÊN TRANG WEB
+
+
 def main():
     st.title("Chẩn Đoán Bệnh Lá Cà Chua Bằng AI")
     st.write("Ứng dụng tự động chẩn đoán bệnh cây cà chua, tra cứu thời tiết thời gian thực và dự báo nguy cơ lây lan dịch bệnh.")
