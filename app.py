@@ -6,157 +6,207 @@ import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
 
-# 1. CẤU HÌNH TRANG STREAMLIT
+# ---------------------------------------------------------
+# 1. CẤU HÌNH TRANG STREAMLIT (CĂN GIỮA, KHÔNG DÙNG SIDEBAR)
+# ---------------------------------------------------------
 st.set_page_config(
-    page_title="Hệ Thống Chẩn Đoán Bệnh Về Lá Cà Chua",
+    page_title="Chẩn Đoán Bệnh Lá Cà Chua AI",
     page_icon="icon.png",
-    layout="wide"
+    layout="centered"
 )
 
-# 2. DANH SÁCH 34 TỈNH THÀNH SAU SÁP NHẬP (TỪ 01/07/2025)
-PROVINCES_34 = [
-    "TP Hà Nội", "TP Hồ Chí Minh", "TP Đà Nẵng", "TP Hải Phòng", "TP Cần Thơ", "TP Huế",
-    "Tỉnh An Giang", "Tỉnh Bắc Ninh", "Tỉnh Cao Bằng", "Tỉnh Cà Mau", "Tỉnh Đắk Lắk",
-    "Tỉnh Điện Biên", "Tỉnh Đồng Nai", "Tỉnh Đồng Tháp", "Tỉnh Gia Lai", "Tỉnh Hà Tĩnh",
-    "Tỉnh Hưng Yên", "Tỉnh Khánh Hòa", "Tỉnh Lai Châu", "Tỉnh Lâm Đồng", "Tỉnh Lạng Sơn",
-    "Tỉnh Lào Cai", "Tỉnh Nghệ An", "Tỉnh Ninh Bình", "Tỉnh Phú Thọ", "Tỉnh Quảng Ngãi",
-    "Tỉnh Quảng Ninh", "Tỉnh Quảng Trị", "Tỉnh Sơn La", "Tỉnh Tây Ninh", "Tỉnh Thái Nguyên",
-    "Tỉnh Thanh Hóa", "Tỉnh Tuyên Quang", "Tỉnh Vĩnh Long"
-]
+# ---------------------------------------------------------
+# 2. BẢNG TỌA ĐỘ ĐỊA LÝ 34 TỈNH THÀNH VIỆT NAM (SAU SÁP NHẬP)
+# ---------------------------------------------------------
+PROVINCE_COORDS = {
+    "TP Hà Nội": {"lat": 21.0285, "lon": 105.8542},
+    "TP Hồ Chí Minh": {"lat": 10.8231, "lon": 106.6297},
+    "TP Đà Nẵng": {"lat": 16.0544, "lon": 108.2022},
+    "TP Hải Phòng": {"lat": 20.8449, "lon": 106.6881},
+    "TP Cần Thơ": {"lat": 10.0452, "lon": 105.7469},
+    "TP Huế": {"lat": 16.4637, "lon": 107.5909},
+    "Tỉnh An Giang": {"lat": 10.5365, "lon": 105.1259},
+    "Tỉnh Bắc Ninh": {"lat": 21.1861, "lon": 106.0763},
+    "Tỉnh Cao Bằng": {"lat": 22.6658, "lon": 105.9036},
+    "Tỉnh Cà Mau": {"lat": 9.1769, "lon": 105.1524},
+    "Tỉnh Đắk Lắk": {"lat": 12.6667, "lon": 108.0500},
+    "Tỉnh Điện Biên": {"lat": 21.3853, "lon": 103.0188},
+    "Tỉnh Đồng Nai": {"lat": 10.9574, "lon": 106.8427},
+    "Tỉnh Đồng Tháp": {"lat": 10.4938, "lon": 105.6882},
+    "Tỉnh Gia Lai": {"lat": 13.9833, "lon": 108.0000},
+    "Tỉnh Hà Tĩnh": {"lat": 18.3430, "lon": 105.9058},
+    "Tỉnh Hưng Yên": {"lat": 20.6464, "lon": 106.0511},
+    "Tỉnh Khánh Hòa": {"lat": 12.2388, "lon": 109.1967},
+    "Tỉnh Lai Châu": {"lat": 22.3964, "lon": 103.4583},
+    "Tỉnh Lâm Đồng": {"lat": 11.9404, "lon": 108.4583},
+    "Tỉnh Lạng Sơn": {"lat": 21.8478, "lon": 106.7583},
+    "Tỉnh Lào Cai": {"lat": 22.4856, "lon": 103.9707},
+    "Tỉnh Nghệ An": {"lat": 19.2342, "lon": 104.8387},
+    "Tỉnh Ninh Bình": {"lat": 20.2506, "lon": 105.9745},
+    "Tỉnh Phú Thọ": {"lat": 21.3167, "lon": 105.2167},
+    "Tỉnh Quảng Ngãi": {"lat": 15.1205, "lon": 108.7922},
+    "Tỉnh Quảng Ninh": {"lat": 21.0069, "lon": 107.2925},
+    "Tỉnh Quảng Trị": {"lat": 16.7431, "lon": 107.1861},
+    "Tỉnh Sơn La": {"lat": 21.3256, "lon": 103.9186},
+    "Tỉnh Tây Ninh": {"lat": 11.3122, "lon": 106.0983},
+    "Tỉnh Thái Nguyên": {"lat": 21.5928, "lon": 105.8442},
+    "Tỉnh Thanh Hóa": {"lat": 19.8067, "lon": 105.7850},
+    "Tỉnh Tuyên Quang": {"lat": 21.8239, "lon": 105.2173},
+    "Tỉnh Vĩnh Long": {"lat": 10.2537, "lon": 105.9722}
+}
 
-# 3. CƠ SỞ DỮ LIỆU 11 LỚP BỆNH
+# ---------------------------------------------------------
+# 3. CƠ SỞ DỮ LIỆU 11 LỚP BỆNH VÀ BẢN CHẤT BỆNH HỌC
+# ---------------------------------------------------------
 DISEASE_DATABASE = {
     "Bacterial_spot": {
         "vn_name": "Bệnh Đốm Vi Khuẩn (Bacterial Spot)",
         "type": "Vi khuẩn",
-        "symptoms": "Xuất hiện các đốm nhỏ màu nâu đen, mọng nước trên bề mặt lá. Lá vàng và rụng dưới gốc.",
-        "remedy": "Phun thuốc gốc đồng (Copper Hydroxide hoặc Kasugamycin). Tỉa bớt lá già và giữ vườn thông thoáng."
+        "symptoms": "Xuất hiện các đốm nhỏ màu nâu đen, mọng nước trên bề mặt lá. Lá vàng và rụng sớm dưới gốc.",
+        "remedy": "Phun thuốc gốc đồng (Copper Hydroxide hoặc Kasugamycin). Tỉa bớt lá già, tạo độ thông thoáng và tránh tưới phun mưa trực tiếp lên lá."
     },
     "Early_blight": {
         "vn_name": "Bệnh Đốm Vòng / Cháy Lá Sớm (Early Blight)",
         "type": "Nấm",
-        "symptoms": "Vết bệnh hình tròn có các vòng đồng tâm màu nâu đen, lá bị vàng xung quanh đốm.",
-        "remedy": "Phun thuốc gốc Mancozeb, Chlorothalonil hoặc Difenoconazole. Luân canh cây trồng."
+        "symptoms": "Vết bệnh hình tròn có các vòng đồng tâm màu nâu đen, viền lá xung quanh đốm bị vàng khè.",
+        "remedy": "Phun thuốc gốc Mancozeb, Chlorothalonil hoặc Difenoconazole. Thu gom lá bệnh rụng và luân canh cây trồng."
     },
     "Late_blight": {
         "vn_name": "Bệnh Sương Mai / Cháy Lá Muộn (Late Blight)",
         "type": "Nấm",
-        "symptoms": "Vết đốm màu xám xanh mọng nước, phát triển nhanh làm cháy khô toàn bộ lá và cành.",
-        "remedy": "Phun ngay Metalaxyl, Dimethomorph hoặc Ridomil Gold. Ngừng tưới nước lên lá."
+        "symptoms": "Vết đốm màu xám xanh mọng nước, phát triển rất nhanh làm cháy khô toàn bộ lá, cành và thân cây.",
+        "remedy": "Phun ngay thuốc đặc trị chứa Metalaxyl, Dimethomorph hoặc Ridomil Gold. Ngừng tưới nước lên lá và cách ly cây bệnh."
     },
     "Leaf_mold": {
         "vn_name": "Bệnh Mốc Lá (Leaf Mold)",
         "type": "Nấm",
         "symptoms": "Mặt trên lá có đốm vàng nhạt, mặt dưới xuất hiện lớp mốc màu xám xỉn hoặc nâu nhạt.",
-        "remedy": "Phun thuốc gốc Đồng hoặc Carbendazim. Giảm độ ẩm và tăng cường thông gió."
+        "remedy": "Phun thuốc gốc Đồng hoặc Carbendazim. Giảm độ ẩm vườn, tăng cường thông gió và tỉa lá gốc."
     },
     "Septoria_leaf_spot": {
         "vn_name": "Bệnh Đốm Lá Septoria (Septoria Leaf Spot)",
         "type": "Nấm",
-        "symptoms": "Các đốm tròn nhỏ màu xám nhạt ở giữa, viền nâu đen xuất hiện nhiều ở các lá gốc.",
-        "remedy": "Phun Azoxystrobin hoặc Difenoconazole. Thu gom và tiêu hủy lá bệnh rụng dưới gốc."
+        "symptoms": "Các đốm tròn nhỏ màu xám nhạt ở giữa, viền nâu đen xuất hiện nhiều ở các lá tán gốc.",
+        "remedy": "Phun Azoxystrobin hoặc Difenoconazole. Thu gom tiêu hủy lá rụng và dọn sạch cỏ dại xung quanh."
     },
     "Spider_mites": {
         "vn_name": "Nhện Đỏ Hại Lá (Two-Spotted Spider Mites)",
         "type": "Côn trùng hại",
-        "symptoms": "Lá xuất hiện các chấm nhỏ lốm đốm màu vàng, mặt dưới lá có màng tơ mỏng.",
-        "remedy": "Phun thuốc đặc trị nhện như Abamectin, Hexythiazox hoặc Propargite. Tăng độ ẩm vườn."
+        "symptoms": "Lá xuất hiện các chấm nhỏ lốm đốm màu vàng nhạt, mặt dưới lá có màng tơ mỏng và nhện nhỏ bò.",
+        "remedy": "Phun thuốc đặc trị nhện như Abamectin, Hexythiazox hoặc Propargite. Tăng độ ẩm phun sương để hạn chế nhện phát triển."
     },
     "Target_Spot": {
         "vn_name": "Bệnh Đốm Mục Tiêu (Target Spot)",
         "type": "Nấm",
-        "symptoms": "Vết bệnh hình tròn màu nâu với tâm sáng hơn, tạo hình dạng giống bia bắn.",
-        "remedy": "Sử dụng thuốc trừ nấm chứa Chlorothalonil hoặc Pyraclostrobin."
+        "symptoms": "Vết bệnh hình tròn màu nâu với tâm sáng hơn, tạo hình dạng giống như bia bắn.",
+        "remedy": "Sử dụng thuốc trừ nấm chứa Chlorothalonil, Pyraclostrobin hoặc Mancozeb."
     },
     "Yellow_Leaf_Curl_Virus": {
         "vn_name": "Bệnh Xoăn Lá Vàng Do Virus (Yellow Leaf Curl Virus)",
         "type": "Virus",
-        "symptoms": "Lá bị xoăn ngửa lên trên, phiến lá nhỏ lại, màu vàng chanh, cây lùn còi cọc và không ra quả.",
-        "remedy": "Không thể chữa khỏi bằng thuốc. Cần diệt bọ phấn trắng (côn trùng truyền bệnh) và nhổ bỏ cây bệnh."
+        "symptoms": "Lá bị xoăn ngửa lên trên, phiến lá nhỏ lại, màu vàng chanh, cây lùn còi cọc và không thể ra quả.",
+        "remedy": "Không thể chữa khỏi bằng thuốc hóa học. Cần phun Imidacloprid để tiêu diệt bọ phấn trắng (vật trung gian truyền bệnh) và nhổ bỏ cây bệnh."
     },
     "Mosaic_virus": {
         "vn_name": "Bệnh Khảm Lá Do Virus (Mosaic Virus)",
         "type": "Virus",
-        "symptoms": "Lá loang lổ các vệt màu xanh đậm và xanh nhạt xen kẽ, lá bị biến dạng và nhăn nheo.",
+        "symptoms": "Lá loang lổ các vệt màu xanh đậm và xanh nhạt xen kẽ, lá bị biến dạng, nhăn nheo.",
         "remedy": "Nhổ bỏ cây bệnh để tránh lây lan. Khử trùng dụng cụ cắt tỉa và diệt rệp muỗi truyền bệnh."
     },
     "Powdery_mildew": {
         "vn_name": "Bệnh Phấn Trắng (Powdery Mildew)",
         "type": "Nấm",
-        "symptoms": "Lớp bột trắng như phấn bao phủ trên bề mặt lá, làm lá khô xơ và rụng.",
-        "remedy": "Phun Sulfur (Lưu huỳnh), Hexaconazole hoặc Myclobutanil."
+        "symptoms": "Lớp bột trắng như phấn bao phủ trên bề mặt lá, làm lá khô xơ, chuyển vàng và rụng.",
+        "remedy": "Phun Sulfur (Lưu huỳnh), Hexaconazole hoặc Myclobutanil khi vừa phát hiện vết phấn đầu tiên."
     },
     "Healthy": {
         "vn_name": "Lá Khỏe Mạnh (Healthy)",
         "type": "Không có bệnh",
-        "symptoms": "Lá xanh tươi, không có dấu hiệu bị nấm, vi khuẩn hay sâu bệnh tấn công.",
-        "remedy": "Tiếp tục chăm sóc, tưới nước và bón phân định kỳ cân đối N-P-K."
+        "symptoms": "Lá xanh tươi, phiến lá phẳng, không có dấu hiệu bị nấm, vi khuẩn hay sâu bệnh tấn công.",
+        "remedy": "Tiếp tục duy trì chế độ chăm sóc, tưới nước vừa đủ và bón phân định kỳ cân đối N-P-K."
     }
 }
 
 NORMALIZED_DB = {k.lower().replace("_", "").replace(" ", "").replace("-", ""): v for k, v in DISEASE_DATABASE.items()}
 
-# 4. HÀM ĐÁNH GIÁ TÌNH TRẠNG VÀ PHỤC HỒI
-def generate_tailored_advice(pred_key, temp, humidity, rainfall, leaf_status):
+# ---------------------------------------------------------
+# 4. HÀM LẤY THỜI TIẾT THỜI GIAN THỰC THEO TỌA ĐỘ
+# ---------------------------------------------------------
+def get_realtime_weather(lat, lon):
+    try:
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,rain"
+        res = requests.get(url, timeout=5)
+        if res.status_code == 200:
+            current_data = res.json().get("current", {})
+            temp = current_data.get("temperature_2m", 28.0)
+            humidity = current_data.get("relative_humidity_2m", 78)
+            rain = current_data.get("rain", 0.0)
+            return temp, humidity, rain
+    except Exception:
+        pass
+    return 28.5, 80.0, 0.0
+
+# ---------------------------------------------------------
+# 5. HÀM ĐÁNH GIÁ KHẢ NĂNG LÂY LAN TRONG TƯƠNG LAI
+# ---------------------------------------------------------
+def evaluate_spread_forecast(pred_key, temp, humidity, rain):
     info = NORMALIZED_DB.get(pred_key, {
         "vn_name": "Không xác định",
-        "type": "Không rõ",
-        "symptoms": "Chưa có thông tin mô tả chi tiết.",
-        "remedy": "Tham khảo ý kiến chuyên gia nông nghiệp địa phương."
+        "type": "Không rõ"
     })
-
+    
     disease_type = info["type"]
-    status_report = []
-    advice_list = []
-
-    env_summary = f"Điều kiện môi trường: Nhiệt độ {temp}°C, Độ ẩm {humidity}%, Lượng mưa {rainfall} mm."
-    status_report.append(env_summary)
 
     if pred_key == "healthy":
-        if "Héo" in leaf_status and temp <= 28 and humidity >= 50:
-            status_report.append("Tình trạng: Lá bị héo nhẹ do thiếu nước hoặc suy kiệt tạm thời.")
-            status_report.append("Khả năng phục hồi: CAO (100%). Thời tiết mát mẻ và độ ẩm tốt sẽ giúp cây phục hồi nhanh chóng sau khi được cấp nước.")
-            advice_list.append("Tưới bổ sung nước vào gốc vào buổi sáng sớm hoặc chiều mát.")
-        elif "Héo" in leaf_status and temp > 32:
-            status_report.append("Tình trạng: Lá bị héo rủ do nhiệt độ cao làm thoát hơi nước cấp tính.")
-            status_report.append("Khả năng phục hồi: TRUNG BÌNH. Cần che mát kịp thời.")
-            advice_list.append("Che lưới giảm nắng và tưới giữ ẩm gốc, tránh tưới trực tiếp lên lá khi trời đang nắng gắt.")
-        else:
-            status_report.append("Tình trạng: Lá cà chua sinh trưởng tốt, không phát hiện mầm bệnh.")
-            status_report.append("Khả năng phục hồi: Hoàn hảo.")
-            advice_list.append(info["remedy"])
-        return status_report, advice_list
+        return "KHÔNG CÓ (0%)", "Cây trồng đang khỏe mạnh. Hãy tiếp tục duy trì vệ sinh vườn và theo dõi định kỳ."
 
     if disease_type == "Virus":
-        status_report.append(f"Tình trạng: Cây đã nhiễm {info['vn_name']}.")
-        status_report.append("Khả năng phục hồi: KHÔNG THỂ PHỤC HỒI bằng thời tiết hay tưới nước.")
-        advice_list.append(info["remedy"])
-        advice_list.append("Nhổ bỏ cây nhiễm bệnh để tránh lây lan toàn vườn.")
-        return status_report, advice_list
+        return (
+            "RẤT CAO (Tốc độ bùng phát nhanh)",
+            "Bệnh do Virus lây truyền qua bọ phấn trắng và rệp muỗi. Nếu không phun thuốc diệt côn trùng trung gian và nhổ bỏ cây bệnh, mầm bệnh sẽ lan ra toàn bộ vườn trong vòng 3-5 ngày."
+        )
 
-    if "Héo" in leaf_status or "Cháy" in leaf_status:
-        if temp <= 26 and rainfall < 20:
-            status_report.append(f"Tình trạng: Phát hiện {info['vn_name']}.")
-            status_report.append("Khả năng phục hồi: KHẢ NĂNG PHỤC HỒI CAO. Thời tiết mát mẻ giúp cây không bị mất sức, khi phun thuốc trị bệnh cây sẽ nhanh hồi phục.")
-            advice_list.append("Tỉa bỏ các lá bệnh nặng và phun thuốc đặc trị theo hướng dẫn.")
-            advice_list.append("Bón bổ sung phân bón lá để kích thích chồi mới.")
-        elif humidity > 80 or rainfall >= 20:
-            status_report.append(f"Tình trạng: {info['vn_name']} có nguy cơ bùng phát mạnh do độ ẩm cao và mưa nhiều ({rainfall} mm).")
-            status_report.append("Khả năng phục hồi: TRUNG BÌNH. Cần xử lý ngay để tránh lây lan.")
-            advice_list.append("Ngừng tưới nước lên lá. Phun thuốc phòng ngừa ngay sau khi tạnh mưa.")
-            advice_list.append("Khơi thông rãnh thoát nước trong vườn.")
+    if disease_type == "Nấm":
+        if humidity >= 75 or rain > 0:
+            return (
+                "CỰC KỲ CAO (Nguy cơ dịch bùng phát 80-95%)",
+                f"Độ ẩm không khí thời gian thực cao ({humidity}%) và có mưa ({rain} mm) là điều kiện lý tưởng cho bào tử nấm phát tán mạnh qua giọt nước và gió. Bệnh sẽ lây lan rất nhanh sang các cây lân cận trong 24-48 giờ tới."
+            )
         else:
-            status_report.append(f"Tình trạng: {info['vn_name']} phát triển do nhiệt độ cao ({temp}°C).")
-            status_report.append("Khả năng phục hồi: TRUNG BÌNH.")
-            advice_list.append("Phun thuốc trị bệnh vào chiều mát và kết hợp che nắng nhẹ.")
-    else:
-        status_report.append(f"Tình trạng: Phát hiện {info['vn_name']}.")
-        status_report.append("Khả năng phục hồi: TỐT nếu xử lý kịp thời.")
-        advice_list.append(info["remedy"])
+            return (
+                "TRUNG BÌNH (30-50%)",
+                f"Thời tiết hiện tại (Độ ẩm {humidity}%, Nhiệt độ {temp}°C) làm chậm sự phát tán bào tử nấm. Tuy nhiên cần phun thuốc phòng ngừa trước khi có đợt mưa mới."
+            )
 
-    return status_report, advice_list
+    if disease_type == "Vi khuẩn":
+        if rain > 0 or humidity >= 80:
+            return (
+                "CAO (Nguy cơ lây lan 70-85%)",
+                "Vi khuẩn lây lan mạnh qua nước tưới, giọt mưa bắn và dụng cụ cắt tỉa. Cần cách ly ngay vùng cây bệnh."
+            )
+        else:
+            return (
+                "TRUNG BÌNH (40%)",
+                "Vi khuẩn phát triển chậm hơn khi môi trường khô ráo. Tránh tưới nước lên lá để hạn chế vi khuẩn văng sang cây khác."
+            )
 
-# 5. HÀM NẠP CHECKPOINT DẠNG CHUẨN
+    if disease_type == "Côn trùng hại":
+        if temp >= 30 and humidity < 70:
+            return (
+                "RẤT CAO (Bùng phát do thời tiết khô nóng)",
+                f"Nhiệt độ cao ({temp}°C) và không khí khô thúc đẩy nhện đỏ sinh sản bùng phát rất nhanh. Cần phun thuốc đặc trị nhện và tăng độ ẩm vườn."
+            )
+        else:
+            return (
+                "TRUNG BÌNH (45%)",
+                "Mật độ nhện đang ở mức gia tăng. Phun thuốc đặc trị để chặn đứng dòng sinh sản."
+            )
+
+    return "TRUNG BÌNH", "Cần theo dõi sát sao biểu hiện của vườn trong các ngày tới."
+
+# ---------------------------------------------------------
+# 6. TỰ ĐỘNG NẠP MÔ HÌNH AI PHÍA BACKEND (NGƯỜI DÙNG KHÔNG CẦN NẠP)
+# ---------------------------------------------------------
 MODEL_URL = "https://github.com/Tranthihoaithuong2009/tomato-disease-ai/releases/download/v1.0/tomato_model_best.pth"
 
 def load_checkpoint_file(file_source):
@@ -178,83 +228,68 @@ def load_checkpoint_file(file_source):
     return model, class_names
 
 @st.cache_resource
-def load_model_from_path(model_path):
-    return load_checkpoint_file(model_path)
+def get_ai_model():
+    # Tự động nạp file .pth có sẵn trong repo (ví dụ tomato_model_best (3).pth hoặc tomato_model_best.pth)
+    pth_files = [f for f in os.listdir(".") if f.endswith(".pth") and os.path.getsize(f) > 5000000]
+    if pth_files:
+        try:
+            return load_checkpoint_file(pth_files)
+        except Exception:
+            pass
 
-# 6. GIAO DIỆN CHÍNH
+    # Nếu chưa có file local thì tự động tải từ GitHub Release ẩn đằng sau
+    local_default = "tomato_model_best.pth"
+    if not os.path.exists(local_default) or os.path.getsize(local_default) < 5000000:
+        res = requests.get(MODEL_URL, allow_redirects=True, timeout=20)
+        if res.status_code == 200 and len(res.content) > 5000000:
+            with open(local_default, "wb") as f:
+                f.write(res.content)
+
+    return load_checkpoint_file(local_default)
+
+# ---------------------------------------------------------
+# 7. GIAO DIỆN CHÍNH TRÊN TRANG WEB (TẤT CẢ Ở GIỮA, KHÔNG SIDEBAR)
+# ---------------------------------------------------------
 def main():
     st.title("Chẩn Đoán Bệnh Lá Cà Chua Bằng AI")
-    st.write("Ứng dụng phân tích hình ảnh lá cà chua, kết hợp các thông số thời tiết (nhiệt độ, độ ẩm, lượng mưa) để đưa ra chẩn đoán và hướng khắc phục.")
+    st.write("Ứng dụng tự động chẩn đoán bệnh cây cà chua, tra cứu thời tiết thời gian thực và dự báo nguy cơ lây lan dịch bệnh.")
+    st.markdown("---")
 
-    st.sidebar.title("Vị Trí Và Thời Tiết")
-    selected_province = st.sidebar.selectbox("Chọn Tỉnh/Thành phố (34 tỉnh thành):", PROVINCES_34)
-    
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("Thông Số Môi Trường Vườn Trồng")
-    
-    temp = st.sidebar.slider("Nhiệt độ (°C):", min_value=10, max_value=45, value=25)
-    humidity = st.sidebar.slider("Độ ẩm (%):", min_value=20, max_value=100, value=75)
-    rainfall = st.sidebar.number_input("Lượng mưa (mm):", min_value=0.0, max_value=300.0, value=0.0, step=5.0)
-    
-    leaf_status = st.sidebar.selectbox(
-        "Biểu hiện ngoại quan của lá:",
-        ["Lá bình thường", "Lá bị héo / Rủ ngọn", "Lá bị cháy xám / Vàng đốm", "Lá bị xoăn / Biến dạng"]
+    # BƯỚC 1: CHỌN TỈNH/THÀNH PHỐ
+    st.subheader("1. Chọn Tỉnh/Thành phố")
+    selected_province = st.selectbox(
+        "Vui lòng chọn địa phương của bạn:",
+        options=list(PROVINCE_COORDS.keys())
     )
 
-    st.sidebar.markdown("---")
-    
-    model = None
-    class_names = []
+    # Lấy tọa độ địa lý
+    coords = PROVINCE_COORDS[selected_province]
+    lat, lon = coords["lat"], coords["lon"]
 
-    # 1. Tự động kiểm tra file local .pth
-    pth_files = [f for f in os.listdir(".") if f.endswith(".pth") and os.path.getsize(f) > 5000000]
-    
-    if pth_files:
-        target_file = pth_files.pop(0)
-        try:
-            model, class_names = load_model_from_path(target_file)
-        except Exception:
-            model = None
-
-    # 2. Thử tải tự động từ GitHub Release v1.0
-    if model is None:
-        local_default = "tomato_model_best.pth"
-        try:
-            res = requests.get(MODEL_URL, allow_redirects=True, timeout=10)
-            if res.status_code == 200 and len(res.content) > 5000000:
-                with open(local_default, "wb") as f:
-                    f.write(res.content)
-                model, class_names = load_model_from_path(local_default)
-        except Exception:
-            model = None
-
-    # 3. Hiển thị khung tải file ngay MÀN HÌNH CHÍNH nếu chưa nạp được tự động
-    if model is None:
-        st.info("Bước 1: Nạp file mô hình AI (Hỗ trợ file tới 200MB từ máy tính)")
-        uploaded_model_file = st.file_uploader("Chọn file tomato_model_best (3).pth trên máy tính của bạn:", type=["pth"])
-        
-        if uploaded_model_file is not None:
-            try:
-                model, class_names = load_checkpoint_file(uploaded_model_file)
-                st.success("Đã nạp mô hình thành công!")
-            except Exception as e:
-                st.error(f"Lỗi đọc file mô hình: {e}")
-                return
-        else:
-            return
-
-    # Tải ảnh lá cà chua lên kiểm tra
     st.markdown("---")
-    st.subheader("Bước 2: Tải ảnh lá cà chua lên để chẩn đoán")
-    uploaded_file = st.file_uploader("Chọn ảnh lá cà chua (JPG, PNG, JPEG)...", type=["jpg", "png", "jpeg"])
+
+    # BƯỚC 2: TẢI ẢNH LÁ CÀ CHUA
+    st.subheader("2. Chọn ảnh lá cà chua")
+    uploaded_file = st.file_uploader(
+        "Tải ảnh lá cà chua từ máy tính hoặc điện thoại (JPG, PNG, JPEG):",
+        type=["jpg", "png", "jpeg"]
+    )
 
     if uploaded_file is not None:
+        st.markdown("---")
+        st.subheader("3. Kết Quả Phân Tích Chi Tiết")
+
         image = Image.open(uploaded_file).convert('RGB')
-        col1, col2 = st.columns(2)
+        
+        # Nạp mô hình AI ẩn phía sau (Người dùng không phải làm gì)
+        try:
+            with st.spinner("Hệ thống đang khởi tạo mô hình AI và phân tích ảnh..."):
+                model, class_names = get_ai_model()
+        except Exception as e:
+            st.error(f"Không thể khởi tạo mô hình AI: {e}. Vui lòng kiểm tra file tomato_model_best.pth trên GitHub.")
+            return
 
-        with col1:
-            st.image(image, caption="Hình ảnh lá đã tải lên", use_container_width=True)
-
+        # Xử lý hình ảnh
         transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
@@ -263,11 +298,10 @@ def main():
         
         img_tensor = transform(image).unsqueeze(0)
 
-        with st.spinner("AI đang phân tích hình ảnh..."):
-            with torch.no_grad():
-                outputs = model(img_tensor)
-                probabilities = torch.nn.functional.softmax(outputs, dim=1)
-                confidence, predicted_idx = torch.max(probabilities, 1)
+        with torch.no_grad():
+            outputs = model(img_tensor)
+            probabilities = torch.nn.functional.softmax(outputs, dim=1)
+            confidence, predicted_idx = torch.max(probabilities, 1)
 
         predicted_raw = class_names[predicted_idx.item()]
         conf_percent = confidence.item() * 100
@@ -280,37 +314,50 @@ def main():
             "remedy": "Tham khảo ý kiến chuyên gia nông nghiệp địa phương."
         })
 
-        status_reports, tailored_advices = generate_tailored_advice(pred_key, temp, humidity, rainfall, leaf_status)
+        # Lấy thời tiết thời gian thực theo tọa độ
+        temp, humidity, rain = get_realtime_weather(lat, lon)
+        spread_risk, spread_detail = evaluate_spread_forecast(pred_key, temp, humidity, rain)
+
+        # Hiển thị kết quả dạng 2 cột trực quan
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.image(image, caption="Hình ảnh lá đã tải lên", use_container_width=True)
 
         with col2:
-            st.subheader("Kết Quả Chẩn Đoán AI")
             if pred_key == "healthy":
-                st.success(f"Kết quả: {info['vn_name']}")
+                st.success(f"**Kết quả:** {info['vn_name']}")
             else:
-                st.error(f"Kết quả: {info['vn_name']}")
-            
+                st.error(f"**Kết quả:** {info['vn_name']}")
+
             st.metric(label="Độ tin cậy của AI", value=f"{conf_percent:.2f}%")
-            st.write(f"Tác nhân gây bệnh: {info['type']}")
-            st.write(f"Khu vực ghi nhận: {selected_province}")
+            st.write(f"**Tác nhân gây bệnh:** {info['type']}")
+            st.write(f"**Vị trí địa lý:** {selected_province} (Tọa độ: {lat}°N, {lon}°E)")
 
-            st.markdown("---")
-            st.markdown("### Thông Số Thời Tiết Đã Ghi Nhận:")
-            st.write(f"- Nhiệt độ: {temp}°C")
-            st.write(f"- Độ ẩm: {humidity}%")
-            st.write(f"- Lượng mưa: {rainfall} mm")
+        st.markdown("---")
+        
+        # BẢNG THÔNG TIN THỜI TIẾT THỜI GIAN THỰC
+        st.subheader("Thông Số Thời Tiết Thời Gian Thực Tại Địa Phương")
+        w_col1, w_col2, w_col3 = st.columns(3)
+        w_col1.metric("Nhiệt độ hiện tại", f"{temp} °C")
+        w_col2.metric("Độ ẩm không khí", f"{humidity} %")
+        w_col3.metric("Lượng mưa", f"{rain} mm")
 
-            st.markdown("---")
-            st.markdown("### Triệu Chứng Đặc Trưng:")
-            st.write(info["symptoms"])
+        st.markdown("---")
 
-            st.markdown("---")
-            st.markdown("### Đánh Giá Tình Trạng & Khả Năng Phục Hồi:")
-            for report in status_reports:
-                st.write(f"- {report}")
+        # KHẢ NĂNG LÂY LAN TRONG TƯƠNG LAI
+        st.subheader("Khả Năng Lây Lan Trong Tương Lai")
+        st.warning(f"**Mức độ nguy cơ:** {spread_risk}")
+        st.write(spread_detail)
 
-            st.markdown("### Hướng Dẫn Khắc Phục Tương Ứng:")
-            for adv in tailored_advices:
-                st.info(adv)
+        st.markdown("---")
+
+        # TRIỆU CHỨNG & ĐỀ XUẤT GIẢI PHÁP
+        st.subheader("Triệu Chứng Đặc Trưng")
+        st.write(info["symptoms"])
+
+        st.subheader("Đề Xuất Giải Pháp Khắc Phục")
+        st.info(info["remedy"])
 
 if __name__ == "__main__":
     main()
