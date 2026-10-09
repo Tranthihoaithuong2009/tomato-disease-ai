@@ -70,7 +70,7 @@ PROVINCE_COORDS = {
 }
 
 # ---------------------------------------------------------
-# 3. CƠ SỞ DỮ LIỆU ĐẦY ĐỦ CHO TẤT CẢ CÁC BỆNH VÀ CÁC TÊN TỪ MÔ HÌNH (ALIASES)
+# 3. CƠ SỞ DỮ LIỆU ĐẦY ĐỦ CHO TẤT CẢ CÁC BỆNH VÀ BẢNG ÁNH XÁ TÊN LỚP ALIASES
 # ---------------------------------------------------------
 DISEASE_ENTRIES = {
     "bacterial_spot": {
@@ -153,42 +153,28 @@ DISEASE_ENTRIES = {
     }
 }
 
-# ---------------------------------------------------------
-# BẢNG ÁNH XÁ TÊN LỚP (MAPPING ALIASES TỪ MỌI MÔ HÌNH AI)
-# ---------------------------------------------------------
 ALIAS_MAP = {
-    # Bacterial Spot
     "bacterialspot": "bacterial_spot",
     "tomatobacterialspot": "bacterial_spot",
     "tomato___bacterial_spot": "bacterial_spot",
     "tomatobacterial_spot": "bacterial_spot",
-
-    # Early Blight
     "earlyblight": "early_blight",
     "tomatoearlyblight": "early_blight",
     "tomato___early_blight": "early_blight",
     "tomatoearly_blight": "early_blight",
-
-    # Late Blight
     "lateblight": "late_blight",
     "tomatolateblight": "late_blight",
     "tomato___late_blight": "late_blight",
     "tomatolate_blight": "late_blight",
-
-    # Leaf Mold
     "leafmold": "leaf_mold",
     "tomatoleafmold": "leaf_mold",
     "tomato___leaf_mold": "leaf_mold",
     "tomatoleaf_mold": "leaf_mold",
-
-    # Septoria
     "septoria": "septoria_leaf_spot",
     "septorialeafspot": "septoria_leaf_spot",
     "tomatoseptorialeafspot": "septoria_leaf_spot",
     "tomatoseptoria_leaf_spot": "septoria_leaf_spot",
     "tomato___septoria_leaf_spot": "septoria_leaf_spot",
-
-    # Spider Mites
     "spidermites": "spider_mites",
     "twospottedspidermite": "spider_mites",
     "spidermitestwospottedspidermite": "spider_mites",
@@ -196,43 +182,29 @@ ALIAS_MAP = {
     "tomatospider_mites": "spider_mites",
     "tomato___spider_mites_two-spotted_spider_mite": "spider_mites",
     "tomato___spider_mites": "spider_mites",
-
-    # Target Spot
     "targetspot": "target_spot",
     "tomatotargetspot": "target_spot",
     "tomato___target_spot": "target_spot",
     "tomatotarget_spot": "target_spot",
-
-    # Yellow Leaf Curl Virus
     "yellowleafcurlvirus": "yellow_leaf_curl_virus",
     "tomatoyellowleafcurlvirus": "yellow_leaf_curl_virus",
     "tomatotomatoyellowleafcurlvirus": "yellow_leaf_curl_virus",
     "tomato___tomato_yellow_leaf_curl_virus": "yellow_leaf_curl_virus",
     "tomato___yellow_leaf_curl_virus": "yellow_leaf_curl_virus",
-
-    # Mosaic Virus
     "mosaicvirus": "mosaic_virus",
     "tomatomosaicvirus": "mosaic_virus",
     "tomatotomatomosaicvirus": "mosaic_virus",
     "tomato___tomato_mosaic_virus": "mosaic_virus",
     "tomato___mosaic_virus": "mosaic_virus",
-
-    # Powdery Mildew
     "powderymildew": "powdery_mildew",
     "tomatopowderymildew": "powdery_mildew",
     "tomato___powdery_mildew": "powdery_mildew",
-
-    # Leaf Miner
     "leafminer": "leaf_miner",
     "tomatoleafminer": "leaf_miner",
     "tomato___leaf_miner": "leaf_miner",
     "tomatoleaf_miner": "leaf_miner",
-
-    # Anthracnose
     "anthracnose": "anthracnose",
     "tomatoanthracnose": "anthracnose",
-
-    # Healthy
     "healthy": "healthy",
     "tomatohealthy": "healthy",
     "tomato___healthy": "healthy",
@@ -240,13 +212,9 @@ ALIAS_MAP = {
 }
 
 def lookup_disease_info(raw_class_name):
-    # Chuẩn hóa chuỗi tên lớp xuất ra từ model
     clean_key = str(raw_class_name).lower().replace(" ", "").replace("_", "").replace("-", "").replace("*", "")
-    
-    # Tra cứu trong bảng alias
     canonical_key = ALIAS_MAP.get(clean_key)
     
-    # Nếu không thấy trong alias, thử so sánh trực tiếp
     if not canonical_key:
         for k in DISEASE_ENTRIES.keys():
             if k.replace("_", "") in clean_key or clean_key in k.replace("_", ""):
@@ -256,7 +224,6 @@ def lookup_disease_info(raw_class_name):
     if canonical_key and canonical_key in DISEASE_ENTRIES:
         return DISEASE_ENTRIES[canonical_key], canonical_key
 
-    # Trường hợp dự phòng thông minh (Dựa trên từ khóa có trong chuỗi raw)
     if "septoria" in clean_key:
         return DISEASE_ENTRIES["septoria_leaf_spot"], "septoria_leaf_spot"
     if "miner" in clean_key:
@@ -282,7 +249,6 @@ def lookup_disease_info(raw_class_name):
     if "healthy" in clean_key:
         return DISEASE_ENTRIES["healthy"], "healthy"
 
-    # Mặc định an toàn nếu là bệnh chưa xác định
     return {
         "vn_name": f"Bệnh Lá Cà Chua ({raw_class_name})",
         "type": "Cần theo dõi thêm",
@@ -295,7 +261,7 @@ def lookup_disease_info(raw_class_name):
 # ---------------------------------------------------------
 def get_realtime_weather(lat, lon):
     try:
-        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,rain"
+        url = f"[suspicious link removed]{lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,rain"
         res = requests.get(url, timeout=5)
         if res.status_code == 200:
             current_data = res.json().get("current", {})
@@ -364,7 +330,7 @@ def evaluate_spread_forecast(disease_info, temp, humidity, rain):
 # ---------------------------------------------------------
 # 6. TỰ ĐỘNG NẠP MÔ HÌNH AI PHÍA BACKEND
 # ---------------------------------------------------------
-MODEL_URL = "https://github.com/Tranthihoaithuong2009/tomato-disease-ai/releases/download/v1.0/tomato_model_best.pth"
+MODEL_URL = "[suspicious link removed]"
 
 def load_checkpoint_file(file_source):
     try:
@@ -386,7 +352,6 @@ def load_checkpoint_file(file_source):
 
 @st.cache_resource
 def get_ai_model():
-    # 1. Quét tìm tất cả các file .pth có sẵn trong folder
     pth_files = [f for f in os.listdir(".") if f.endswith(".pth") and os.path.getsize(f) > 5000000]
     if pth_files:
         target_file = pth_files
@@ -395,7 +360,6 @@ def get_ai_model():
         except Exception:
             pass
 
-    # 2. Tải tự động từ GitHub Release
     local_default = "tomato_model_best.pth"
     if not os.path.exists(local_default) or os.path.getsize(local_default) < 5000000:
         headers = {'User-Agent': 'Mozilla/5.0'}
@@ -413,7 +377,7 @@ def get_ai_model():
     return load_checkpoint_file(local_default)
 
 # ---------------------------------------------------------
-# 7. GIAO DIỆN CHÍNH TRÊN TRANG WEB (CĂN GIỮA, ĐƠN GIẢN)
+# 7. GIAO DIỆN CHÍNH TRÊN TRANG WEB
 # ---------------------------------------------------------
 def main():
     st.title("Chẩn Đoán Bệnh Lá Cà Chua Bằng AI")
@@ -443,9 +407,8 @@ def main():
         st.markdown("---")
         st.subheader("3. Kết Quả Phân Tích Chi Tiết")
 
-        image = Image.open(uploaded_file).convert('RGB')
+        image = [đã xoá đường liên kết đáng ngờ](uploaded_file).convert('RGB')
         
-        # Nạp mô hình AI phía backend
         try:
             with st.spinner("Hệ thống đang khởi tạo mô hình AI và phân tích ảnh..."):
                 model, class_names = get_ai_model()
@@ -453,7 +416,6 @@ def main():
             st.error(f"{e}")
             return
 
-        # Preprocess ảnh
         transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
@@ -462,7 +424,7 @@ def main():
         
         img_tensor = transform(image).unsqueeze(0)
 
-        with torch.no_grad():
+        with [đã xoá đường liên kết đáng ngờ]_grad():
             outputs = model(img_tensor)
             probabilities = torch.nn.functional.softmax(outputs, dim=1)
             confidence, predicted_idx = torch.max(probabilities, 1)
@@ -470,14 +432,11 @@ def main():
         predicted_raw = class_names[predicted_idx.item()]
         conf_percent = confidence.item() * 100
 
-        # Tra cứu từ điển tiếng Việt thông minh
         info, canonical_key = lookup_disease_info(predicted_raw)
 
-        # Lấy thời tiết thời gian thực
         temp, humidity, rain = get_realtime_weather(lat, lon)
         spread_risk, spread_detail = evaluate_spread_forecast(info, temp, humidity, rain)
 
-        # Hiển thị dạng 2 cột
         col1, col2 = st.columns(2)
 
         with col1:
@@ -492,6 +451,14 @@ def main():
             st.metric(label="Độ tin cậy của AI:", value=f"{conf_percent:.2f}%")
             st.write(f"**Tác nhân gây bệnh:** {info['type']}")
             st.write(f"**Vị trí địa lý:** {selected_province} (Tọa độ: {lat}°N, {lon}°E)")
+
+            # KHỐI CẢNH BÁO KHI ĐỘ TIN CẬY CỦA AI THẤP (DƯỚI 70%)
+            if conf_percent < 70.0:
+                st.warning(
+                    f"⚠️ **Cảnh báo (Độ tin cậy AI thấp - {conf_percent:.2f}%):**\n\n"
+                    "Mô hình AI chưa thực sự chắc chắn về kết quả này (do ảnh có thể bị mờ, thiếu sáng, chói hoặc triệu chứng chưa rõ ràng). "
+                    "Bạn nên chụp lại ảnh lá rõ nét hơn hoặc đối chiếu kỹ với phần triệu chứng chi tiết bên dưới."
+                )
 
         st.markdown("---")
         
@@ -516,7 +483,7 @@ def main():
         st.write(info["symptoms"])
 
         st.subheader("Đề Xuất Giải Pháp Khắc Phục")
-        st.info(info["remedy"])
+        [đã xoá đường liên kết đáng ngờ](info["remedy"])
 
 if __name__ == "__main__":
     main()
