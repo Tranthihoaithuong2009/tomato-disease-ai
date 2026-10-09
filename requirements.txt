@@ -1,6 +1,7 @@
-streamlit
-torch
-torchvision
-Pillow
-requests
-pandas
+streamlit 
+torch 
+torchvision 
+pillow 
+requests 
+opencv-python-headless 
+numpy
