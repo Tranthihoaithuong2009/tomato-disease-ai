@@ -426,7 +426,7 @@ def main():
         
         img_tensor = transform(image).unsqueeze(0)
 
-        with _grad("đã xóa đường liên kết đáng ngờ"):
+        with torch.no_grad():
             outputs = model(img_tensor)
             probabilities = torch.nn.functional.softmax(outputs, dim=1)
             confidence, predicted_idx = torch.max(probabilities, 1)
