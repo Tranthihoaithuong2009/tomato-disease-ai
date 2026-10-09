@@ -409,7 +409,7 @@ def main():
         st.markdown("---")
         st.subheader("3. Kết Quả Phân Tích Chi Tiết")
 
-        image = [đã xoá đường liên kết đáng ngờ](uploaded_file).convert('RGB')
+        image = ["đã xoá đường liên kết đáng ngờ"](uploaded_file).convert('RGB')
         
         try:
             with st.spinner("Hệ thống đang khởi tạo mô hình AI và phân tích ảnh..."):
