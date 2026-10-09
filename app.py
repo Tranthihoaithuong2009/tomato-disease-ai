@@ -485,7 +485,7 @@ def main():
         st.write(info["symptoms"])
 
         st.subheader("Đề Xuất Giải Pháp Khắc Phục")
-        ["đã xoá đường liên kết đáng ngờ"](info["remedy"])
+        st.write(info["remedy"])
 
 if __name__ == "__main__":
     main()
