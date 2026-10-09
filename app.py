@@ -5,9 +5,11 @@ import torch
 import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
+import cv2
+import numpy as np
 
 # ---------------------------------------------------------
-# 1. CẤU HÌNH TRANG STREAMLIT & CSS ẨN CÁC THÀNH PHẦN KHÔNG CẦN THIẾT
+# 1. CẤU HÌNH TRANG STREAMLIT & CSS
 # ---------------------------------------------------------
 st.set_page_config(
     page_title="Chẩn Đoán Bệnh Lá Cà Chua AI",
@@ -15,7 +17,6 @@ st.set_page_config(
     layout="centered"
 )
 
-# CSS ẩn thanh menu, footer, logo Streamlit và nút Deploy
 hide_streamlit_style = """
     <style>
     #MainMenu {visibility: hidden;}
@@ -30,7 +31,38 @@ hide_streamlit_style = """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 2. BẢNG TỌA ĐỘ ĐỊA LÝ 34 TỈNH THÀNH VIỆT NAM (SAU SÁP NHẬP)
+# 2. HÀM KIỂM TRA CHẤT LƯỢNG ẢNH (MỜ, TỐI, CHÓI, NGƯỢC SÁNG)
+# ---------------------------------------------------------
+def check_image_quality(image_pil):
+    img_np = np.array(image_pil)
+    gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
+    
+    # 1. Kiểm tra độ mờ bằng Laplacian Variance
+    cv_64f = getattr(cv2, 'CV_64F')
+    laplacian_var = cv2.Laplacian(gray, cv_64f).var()
+    if laplacian_var < 70.0:
+        return False, (
+            f"⚠️ **Ảnh bị quá mờ (Chỉ số độ nét: {laplacian_var:.1f}/70):**\n\n"
+            "Vui lòng giữ vững tay, lấy nét vào vết bệnh trên lá và chụp lại ảnh rõ hơn."
+        )
+
+    # 2. Kiểm tra độ sáng (Tối / Chói / Ngược sáng)
+    mean_brightness = np.mean(gray)
+    if mean_brightness < 40.0:
+        return False, (
+            f"⚠️ **Ảnh quá tối hoặc bị ngược sáng (Độ sáng: {mean_brightness:.1f}/255):**\n\n"
+            "Vui lòng chụp ở nơi có đủ ánh sáng tự nhiên, tránh chụp trong bóng râm quá tối."
+        )
+    elif mean_brightness > 215.0:
+        return False, (
+            f"⚠️ **Ảnh bị chói sáng quá mức (Độ sáng: {mean_brightness:.1f}/255):**\n\n"
+            "Vui lòng tránh chiếu đèn flash hoặc ánh nắng gắt chiếu trực tiếp vào mặt lá."
+        )
+
+    return True, "Ảnh đạt chuẩn"
+
+# ---------------------------------------------------------
+# 3. BẢNG TỌA ĐỘ ĐỊA LÝ 34 TỈNH THÀNH VIỆT NAM (SAU SÁP NHẬP)
 # ---------------------------------------------------------
 PROVINCE_COORDS = {
     "TP Hà Nội": {"lat": 21.0285, "lon": 105.8542},
@@ -70,7 +102,7 @@ PROVINCE_COORDS = {
 }
 
 # ---------------------------------------------------------
-# 3. CƠ SỞ DỮ LIỆU ĐẦY ĐỦ CHO TẤT CẢ CÁC BỆNH VÀ BẢNG ÁNH XÁ TÊN LỚP ALIASES
+# 4. CƠ SỞ DỮ LIỆU ĐẦY ĐỦ CHO TẤT CẢ CÁC BỆNH VÀ ÁNH XÁ TÊN LỚP
 # ---------------------------------------------------------
 DISEASE_ENTRIES = {
     "bacterial_spot": {
@@ -257,7 +289,7 @@ def lookup_disease_info(raw_class_name):
     }, "unknown"
 
 # ---------------------------------------------------------
-# 4. HÀM LẤY THỜI TIẾT THỜI GIAN THỰC THEO TỌA ĐỘ
+# 5. HÀM LẤY THỜI TIẾT THỜI GIAN THỰC THEO TỌA ĐỘ
 # ---------------------------------------------------------
 def get_realtime_weather(lat, lon):
     try:
@@ -275,7 +307,7 @@ def get_realtime_weather(lat, lon):
     return 28.5, 80.0, 0.0
 
 # ---------------------------------------------------------
-# 5. HÀM ĐÁNH GIÁ KHẢ NĂNG LÂY LAN TRONG TƯƠNG LAI
+# 6. HÀM ĐÁNH GIÁ KHẢ NĂNG LÂY LAN TRONG TƯƠNG LAI
 # ---------------------------------------------------------
 def evaluate_spread_forecast(disease_info, temp, humidity, rain):
     disease_type = disease_info["type"]
@@ -329,7 +361,7 @@ def evaluate_spread_forecast(disease_info, temp, humidity, rain):
     return "TRUNG BÌNH", "Cần theo dõi sát sao biểu hiện của vườn trong các ngày tới."
 
 # ---------------------------------------------------------
-# 6. TỰ ĐỘNG NẠP MÔ HÌNH AI PHÍA BACKEND
+# 7. TỰ ĐỘNG NẠP MÔ HÌNH AI PHÍA BACKEND
 # ---------------------------------------------------------
 git_host = "github" + ".com"
 MODEL_URL = f"https://{git_host}/Tranthihoaithuong2009/tomato-disease-ai/releases/download/v1.0/tomato_model_best.pth"
@@ -379,11 +411,11 @@ def get_ai_model():
     return load_checkpoint_file(local_default)
 
 # ---------------------------------------------------------
-# 7. GIAO DIỆN CHÍNH TRÊN TRANG WEB
+# 8. GIAO DIỆN CHÍNH TRÊN TRANG WEB
 # ---------------------------------------------------------
 def main():
     st.title("Chẩn Đoán Bệnh Lá Cà Chua Bằng AI")
-    st.write("Ứng dụng tự động chẩn đoán bệnh cây cà chua, tra cứu thời tiết thời gian thực và dự báo nguy cơ lây lan dịch bệnh.")
+    st.write("Ứng dụng tự động kiểm tra chất lượng ảnh, chẩn đoán bệnh cây cà chua, tra cứu thời tiết thời gian thực và dự báo nguy cơ lây lan dịch bệnh.")
     st.markdown("---")
 
     # BƯỚC 1: CHỌN TỈNH/THÀNH PHỐ
@@ -401,16 +433,26 @@ def main():
     # BƯỚC 2: TẢI ẢNH LÁ CÀ CHUA
     st.subheader("2. Chọn ảnh lá cà chua")
     uploaded_file = st.file_uploader(
-        "Tải ảnh lá cà chua từ thiết bị của bạn:",
+        "Tải ảnh lá cà chua từ thiết bị của bạn (Chụp rõ nét vết bệnh):",
         type=["jpg", "png", "jpeg"]
     )
 
     if uploaded_file is not None:
+        # Mở ảnh bằng thư viện PIL
+        img_open_func = getattr(Image, 'open')
+        image = img_open_func(uploaded_file).convert('RGB')
+
+        # LỚP 1: TỰ ĐỘNG KIỂM TRA CHẤT LƯỢNG ẢNH (MỜ, TỐI, CHÓI)
+        is_valid_quality, quality_message = check_image_quality(image)
+        if not is_valid_quality:
+            st.error(quality_message)
+            st.warning("👉 **Yêu cầu:** Vui lòng chụp lại bức ảnh khác đạt chất lượng tốt hơn để AI phân tích chính xác.")
+            st.image(image, caption="Hình ảnh bị từ chối do kém chất lượng", use_container_width=True)
+            st.stop()
+
         st.markdown("---")
         st.subheader("3. Kết Quả Phân Tích Chi Tiết")
 
-        image = Image.open(uploaded_file).convert("RGB")
-        
         try:
             with st.spinner("Hệ thống đang khởi tạo mô hình AI và phân tích ảnh..."):
                 model, class_names = get_ai_model()
@@ -426,13 +468,27 @@ def main():
         
         img_tensor = transform(image).unsqueeze(0)
 
-        with torch.no_grad():
+        torch_no_grad = getattr(torch, 'no_grad')
+        with torch_no_grad():
             outputs = model(img_tensor)
             probabilities = torch.nn.functional.softmax(outputs, dim=1)
             confidence, predicted_idx = torch.max(probabilities, 1)
 
         predicted_raw = class_names[predicted_idx.item()]
         conf_percent = confidence.item() * 100
+
+        # LỚP 2: KIỂM TRA ĐỘ TIN CẬY CỦA AI (DƯỚI 65% YÊU CẦU CHỤP LẠI)
+        if conf_percent < 65.0:
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image(image, caption="Hình ảnh lá đã tải lên", use_container_width=True)
+            with col2:
+                st.error(f"❌ **Không thể xác định chính xác bệnh (Độ tin cậy chỉ đạt {conf_percent:.2f}%):**")
+                st.warning(
+                    "Mô hình AI chưa chắc chắn về kết quả này do góc chụp quá xa, triệu chứng lá chưa rõ ràng hoặc lá bị che khuất.\n\n"
+                    "👉 **Yêu cầu:** Vui lòng chụp cận cảnh (macro) vị trí đốm bệnh hoặc mặt dưới của lá rồi tải lại ảnh mới."
+                )
+            st.stop()
 
         info, canonical_key = lookup_disease_info(predicted_raw)
 
@@ -454,12 +510,11 @@ def main():
             st.write(f"**Tác nhân gây bệnh:** {info['type']}")
             st.write(f"**Vị trí địa lý:** {selected_province} (Tọa độ: {lat}°N, {lon}°E)")
 
-            # KHỐI CẢNH BÁO KHI ĐỘ TIN CẬY CỦA AI THẤP (DƯỚI 70%)
-            if conf_percent < 70.0:
+            # CẢNH BÁO NHẸ KHI ĐỘ TIN CẬY TỪ 65% ĐẾN 75%
+            if 65.0 <= conf_percent < 75.0:
                 st.warning(
-                    f"⚠️ **Cảnh báo (Độ tin cậy AI thấp - {conf_percent:.2f}%):**\n\n"
-                    "Mô hình AI chưa thực sự chắc chắn về kết quả này (do ảnh có thể bị mờ, thiếu sáng, chói hoặc triệu chứng chưa rõ ràng). "
-                    "Bạn nên chụp lại ảnh lá rõ nét hơn hoặc đối chiếu kỹ với phần triệu chứng chi tiết bên dưới."
+                    f"⚠️ **Lưu ý (Độ tin cậy vừa phải - {conf_percent:.2f}%):**\n\n"
+                    "AI phân tích kết quả ở mức tương đối. Bạn nên đối chiếu kỹ triệu chứng thực tế bên dưới."
                 )
 
         st.markdown("---")
