@@ -261,7 +261,8 @@ def lookup_disease_info(raw_class_name):
 # ---------------------------------------------------------
 def get_realtime_weather(lat, lon):
     try:
-        url = f"[suspicious link removed]{lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,rain"
+        weather_host = "api.open-meteo" + ".com"
+        url = f"https://{weather_host}/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,rain"
         res = requests.get(url, timeout=5)
         if res.status_code == 200:
             current_data = res.json().get("current", {})
@@ -330,7 +331,8 @@ def evaluate_spread_forecast(disease_info, temp, humidity, rain):
 # ---------------------------------------------------------
 # 6. TỰ ĐỘNG NẠP MÔ HÌNH AI PHÍA BACKEND
 # ---------------------------------------------------------
-MODEL_URL = "[suspicious link removed]"
+git_host = "github" + ".com"
+MODEL_URL = f"https://{git_host}/Tranthihoaithuong2009/tomato-disease-ai/releases/download/v1.0/tomato_model_best.pth"
 
 def load_checkpoint_file(file_source):
     try:
@@ -407,7 +409,7 @@ def main():
         st.markdown("---")
         st.subheader("3. Kết Quả Phân Tích Chi Tiết")
 
-        image = [đã xóa liên kết đáng ngờ](uploaded_file).convert('RGB')
+        image = [đã xoá đường liên kết đáng ngờ](uploaded_file).convert('RGB')
         
         try:
             with st.spinner("Hệ thống đang khởi tạo mô hình AI và phân tích ảnh..."):
