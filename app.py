@@ -463,7 +463,7 @@ def main():
             else:
                 st.error(f"**Kết quả:** {info['vn_name']}")
 
-            st.metric(label="Độ tin cậy của AI:", value=f"{conf_percent:.2f}%")
+            st.metric(label="Độ tin cậy của AI:", value=f"{float(conf_percent):.2f}%")
             st.write(f"**Tác nhân gây bệnh:** {info['type']}")
             st.write(f"**Vị trí địa lý:** {selected_province} (Tọa độ: {lat}°N, {lon}°E)")
 
