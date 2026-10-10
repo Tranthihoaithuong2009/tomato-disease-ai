@@ -42,7 +42,7 @@ def check_image_quality(image_pil):
     gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
     
     # 1. Kiểm tra độ mờ bằng thuật toán Laplacian Variance
-    laplacian_var = cv2.Laplacian(gray, ["đã xoá đường liên kết đáng ngờ"]_64F).var()
+    laplacian_var = cv2.Laplacian(gray, 6).var()
     if laplacian_var < 70.0:
         return False, (
             f"⚠️ **Ảnh bị mờ / nhòe (Chỉ số độ nét: {laplacian_var:.1f}):**\n\n"
