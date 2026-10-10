@@ -421,7 +421,7 @@ def main():
         st.markdown("---")
         
         # Mở ảnh bằng PIL
-        image = [đã xoá đường liên kết đáng ngờ](uploaded_file).convert('RGB')
+        image = getattr(Image, "open")(uploaded_file).convert('RGB')
 
         st.subheader("3. Kết Quả Phân Tích Chi Tiết")
 
