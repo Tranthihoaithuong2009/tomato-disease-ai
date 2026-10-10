@@ -1,19 +1,19 @@
 import os
 import requests
+import cv2
+import numpy as np
 import streamlit as st
 import torch
 import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
-import cv2
-import numpy as np
 
 # ---------------------------------------------------------
 # 1. CẤU HÌNH TRANG STREAMLIT & CSS
 # ---------------------------------------------------------
 st.set_page_config(
     page_title="Chẩn Đoán Bệnh Lá Cà Chua AI",
-    page_icon="icon.png",
+    page_icon="🍅",
     layout="centered"
 )
 
@@ -31,35 +31,39 @@ hide_streamlit_style = """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 2. HÀM KIỂM TRA CHẤT LƯỢNG ẢNH (MỜ, TỐI, CHÓI, NGƯỢC SÁNG)
+# 2. HÀM KIỂM TRA CHẤT LƯỢNG HÌNH ẢNH (MỜ, TỐI, CHÓI)
 # ---------------------------------------------------------
 def check_image_quality(image_pil):
+    """
+    Kiểm tra xem ảnh có bị mờ (blur), quá tối hoặc quá chói không bằng OpenCV.
+    Trả về: (is_valid, message)
+    """
     img_np = np.array(image_pil)
     gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
     
-    # 1. Kiểm tra độ mờ bằng Laplacian Variance
-    cv_64f = getattr(cv2, 'CV_64F')
-    laplacian_var = cv2.Laplacian(gray, cv_64f).var()
+    # 1. Kiểm tra độ mờ bằng thuật toán Laplacian Variance
+    laplacian_var = cv2.Laplacian(gray, [đã xoá đường liên kết đáng ngờ]_64F).var()
     if laplacian_var < 70.0:
         return False, (
-            f"⚠️ **Ảnh bị quá mờ (Chỉ số độ nét: {laplacian_var:.1f}/70):**\n\n"
-            "Vui lòng giữ vững tay, lấy nét vào vết bệnh trên lá và chụp lại ảnh rõ hơn."
+            f"⚠️ **Ảnh bị mờ / nhòe (Chỉ số độ nét: {laplacian_var:.1f}):**\n\n"
+            "Mô hình AI khó có thể phân biệt chính xác đốm bệnh trên ảnh mờ. "
+            "Vui lòng giữ vững tay, lấy nét lại và chụp bức ảnh rõ hơn."
         )
 
-    # 2. Kiểm tra độ sáng (Tối / Chói / Ngược sáng)
+    # 2. Kiểm tra độ sáng (Tối / Ngược sáng / Chói)
     mean_brightness = np.mean(gray)
     if mean_brightness < 40.0:
         return False, (
-            f"⚠️ **Ảnh quá tối hoặc bị ngược sáng (Độ sáng: {mean_brightness:.1f}/255):**\n\n"
-            "Vui lòng chụp ở nơi có đủ ánh sáng tự nhiên, tránh chụp trong bóng râm quá tối."
+            f"⚠️ **Ảnh quá tối hoặc bị ngược sáng (Chỉ số độ sáng: {mean_brightness:.1f}):**\n\n"
+            "Vui lòng chọn nơi có đủ ánh sáng tự nhiên để vết bệnh hiện rõ hơn."
         )
-    elif mean_brightness > 215.0:
+    elif mean_brightness > 220.0:
         return False, (
-            f"⚠️ **Ảnh bị chói sáng quá mức (Độ sáng: {mean_brightness:.1f}/255):**\n\n"
-            "Vui lòng tránh chiếu đèn flash hoặc ánh nắng gắt chiếu trực tiếp vào mặt lá."
+            f"⚠️ **Ảnh bị chói sáng quá mức (Chỉ số độ sáng: {mean_brightness:.1f}):**\n\n"
+            "Vui lòng tránh chiếu đèn chói hoặc nắng gắt trực tiếp vào chiếc lá."
         )
 
-    return True, "Ảnh đạt chuẩn"
+    return True, "Ảnh đạt chất lượng"
 
 # ---------------------------------------------------------
 # 3. BẢNG TỌA ĐỘ ĐỊA LÝ 34 TỈNH THÀNH VIỆT NAM (SAU SÁP NHẬP)
@@ -102,7 +106,7 @@ PROVINCE_COORDS = {
 }
 
 # ---------------------------------------------------------
-# 4. CƠ SỞ DỮ LIỆU ĐẦY ĐỦ CHO TẤT CẢ CÁC BỆNH VÀ ÁNH XÁ TÊN LỚP
+# 4. CƠ SỞ DỮ LIỆU ĐẦY ĐỦ CHO TẤT CẢ CÁC BỆNH VÀ BẢNG ÁNH XÁ ALIASES
 # ---------------------------------------------------------
 DISEASE_ENTRIES = {
     "bacterial_spot": {
@@ -293,8 +297,8 @@ def lookup_disease_info(raw_class_name):
 # ---------------------------------------------------------
 def get_realtime_weather(lat, lon):
     try:
-        weather_host = "api.open-meteo" + ".com"
-        url = f"https://{weather_host}/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,rain"
+        domain = "api.open-meteo" + ".com"
+        url = f"https://{domain}/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,rain"
         res = requests.get(url, timeout=5)
         if res.status_code == 200:
             current_data = res.json().get("current", {})
@@ -363,8 +367,8 @@ def evaluate_spread_forecast(disease_info, temp, humidity, rain):
 # ---------------------------------------------------------
 # 7. TỰ ĐỘNG NẠP MÔ HÌNH AI PHÍA BACKEND
 # ---------------------------------------------------------
-git_host = "github" + ".com"
-MODEL_URL = f"https://{git_host}/Tranthihoaithuong2009/tomato-disease-ai/releases/download/v1.0/tomato_model_best.pth"
+gh_domain = "github" + ".com"
+MODEL_URL = f"https://{gh_domain}/Tranthihoaithuong2009/tomato-disease-ai/releases/download/v1.0/tomato_model_best.pth"
 
 def load_checkpoint_file(file_source):
     try:
@@ -372,15 +376,24 @@ def load_checkpoint_file(file_source):
     except TypeError:
         checkpoint = torch.load(file_source, map_location=torch.device('cpu'))
 
-    class_names = checkpoint.get('class_names', list(DISEASE_ENTRIES.keys()))
+    if isinstance(checkpoint, dict) and 'class_names' in checkpoint:
+        class_names = checkpoint['class_names']
+        state_dict = checkpoint['model_state_dict']
+    elif isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+        state_dict = checkpoint['model_state_dict']
+        class_names = list(DISEASE_ENTRIES.keys())
+    else:
+        state_dict = checkpoint
+        class_names = list(DISEASE_ENTRIES.keys())
+
     num_classes = len(class_names)
 
-    model = models.efficientnet_v2_s(pretrained=False)
+    model = models.efficientnet_v2_s(weights=None)
     model.classifier = nn.Sequential(
-        nn.Dropout(p=0.2, inplace=True),
+        nn.Dropout(p=0.3, inplace=True),
         nn.Linear(1280, num_classes)
     )
-    model.load_state_dict(checkpoint['model_state_dict'])
+    model.load_state_dict(state_dict)
     model.eval()
     return model, class_names
 
@@ -395,27 +408,30 @@ def get_ai_model():
             pass
 
     local_default = "tomato_model_best.pth"
-    if not os.path.exists(local_default) or os.path.getsize(local_default) < 5000000:
+    if os.path.exists(local_default) and os.path.getsize(local_default) > 5000000:
+        return load_checkpoint_file(local_default)
+
+    try:
         headers = {'User-Agent': 'Mozilla/5.0'}
         res = requests.get(MODEL_URL, headers=headers, allow_redirects=True, timeout=30)
-        
         if res.status_code == 200 and len(res.content) > 5000000:
             with open(local_default, "wb") as f:
                 f.write(res.content)
-        else:
-            raise RuntimeError(
-                f"Chưa tải được mô hình AI từ GitHub Release (Mã lỗi: {res.status_code}). "
-                f"Vui lòng đảm bảo file 'tomato_model_best.pth' đã được đính kèm vào Release v1.0."
-            )
+            return load_checkpoint_file(local_default)
+    except Exception:
+        pass
 
-    return load_checkpoint_file(local_default)
+    raise RuntimeError(
+        "Chưa tìm thấy file 'tomato_model_best.pth'. "
+        "Vui lòng đảm bảo file 'tomato_model_best.pth' đã được đặt cùng thư mục với [đã xoá đường liên kết đáng ngờ]!"
+    )
 
 # ---------------------------------------------------------
 # 8. GIAO DIỆN CHÍNH TRÊN TRANG WEB
 # ---------------------------------------------------------
 def main():
     st.title("Chẩn Đoán Bệnh Lá Cà Chua Bằng AI")
-    st.write("Ứng dụng tự động kiểm tra chất lượng ảnh, chẩn đoán bệnh cây cà chua, tra cứu thời tiết thời gian thực và dự báo nguy cơ lây lan dịch bệnh.")
+    st.write("Ứng dụng chẩn đoán bệnh lá cà chua thông minh, tự động kiểm tra chất lượng ảnh, tra cứu thời tiết thời gian thực và dự báo nguy cơ lây lan dịch bệnh.")
     st.markdown("---")
 
     # BƯỚC 1: CHỌN TỈNH/THÀNH PHỐ
@@ -433,24 +449,23 @@ def main():
     # BƯỚC 2: TẢI ẢNH LÁ CÀ CHUA
     st.subheader("2. Chọn ảnh lá cà chua")
     uploaded_file = st.file_uploader(
-        "Tải ảnh lá cà chua từ thiết bị của bạn (Chụp rõ nét vết bệnh):",
+        "Tải ảnh lá cà chua từ thiết bị của bạn (Chụp rõ vết bệnh, đủ ánh sáng):",
         type=["jpg", "png", "jpeg"]
     )
 
     if uploaded_file is not None:
-        # Mở ảnh bằng thư viện PIL
-        img_open_func = getattr(Image, 'open')
-        image = img_open_func(uploaded_file).convert('RGB')
-
-        # LỚP 1: TỰ ĐỘNG KIỂM TRA CHẤT LƯỢNG ẢNH (MỜ, TỐI, CHÓI)
-        is_valid_quality, quality_message = check_image_quality(image)
-        if not is_valid_quality:
-            st.error(quality_message)
-            st.warning("👉 **Yêu cầu:** Vui lòng chụp lại bức ảnh khác đạt chất lượng tốt hơn để AI phân tích chính xác.")
-            st.image(image, caption="Hình ảnh bị từ chối do kém chất lượng", use_container_width=True)
-            st.stop()
-
         st.markdown("---")
+        
+        # Mở ảnh bằng PIL
+        image = [đã xoá đường liên kết đáng ngờ](uploaded_file).convert('RGB')
+
+        # KIỂM TRA CHẤT LƯỢNG ẢNH BẰNG OPENCV
+        is_valid_quality, quality_msg = check_image_quality(image)
+        if not is_valid_quality:
+            st.error(quality_msg)
+            st.warning("👉 **Yêu cầu:** Vui lòng tải lên bức ảnh khác chụp rõ nét hơn, đủ ánh sáng và không bị chói.")
+            st.stop()  # Chặn không cho mô hình AI phân tích ảnh kém chất lượng
+
         st.subheader("3. Kết Quả Phân Tích Chi Tiết")
 
         try:
@@ -461,44 +476,40 @@ def main():
             return
 
         transform = transforms.Compose([
-            transforms.Resize((224, 224)),
+            transforms.Resize((280, 280)),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
         
         img_tensor = transform(image).unsqueeze(0)
 
-        torch_no_grad = getattr(torch, 'no_grad')
-        with torch_no_grad():
+        with [đã xoá đường liên kết đáng ngờ]_grad():
             outputs = model(img_tensor)
             probabilities = torch.nn.functional.softmax(outputs, dim=1)
-            confidence, predicted_idx = torch.max(probabilities, 1)
+            top3_prob, top3_idx = torch.topk(probabilities, 3, dim=1)
 
-        predicted_raw = class_names[predicted_idx.item()]
-        conf_percent = confidence.item() * 100
+        confidence = top3_prob.item()
+        conf_percent = confidence * 100
+        predicted_raw = class_names[top3_idx.item()]
 
-        # LỚP 2: KIỂM TRA ĐỘ TIN CẬY CỦA AI (DƯỚI 65% YÊU CẦU CHỤP LẠI)
-        if conf_percent < 65.0:
-            col1, col2 = st.columns(2)
-            with col1:
-                st.image(image, caption="Hình ảnh lá đã tải lên", use_container_width=True)
-            with col2:
-                st.error(f"❌ **Không thể xác định chính xác bệnh (Độ tin cậy chỉ đạt {conf_percent:.2f}%):**")
-                st.warning(
-                    "Mô hình AI chưa chắc chắn về kết quả này do góc chụp quá xa, triệu chứng lá chưa rõ ràng hoặc lá bị che khuất.\n\n"
-                    "👉 **Yêu cầu:** Vui lòng chụp cận cảnh (macro) vị trí đốm bệnh hoặc mặt dưới của lá rồi tải lại ảnh mới."
-                )
+        # Nếu độ tin cậy quá thấp (< 60%), yêu cầu người dùng chụp lại
+        if conf_percent < 60.0:
+            st.error(
+                f"❌ **Không thể xác định chính xác bệnh (Độ tin cậy quá thấp - {conf_percent:.2f}%):**\n\n"
+                "Mô hình AI không nhận diện rõ triệu chứng trên bức ảnh này. "
+                "Có thể do góc chụp quá xa, lá bị che khuất hoặc triệu chứng chưa rõ ràng. "
+                "Vui lòng chụp cận cảnh (macro) vị trí đốm bệnh hoặc mặt dưới lá rồi tải lại."
+            )
             st.stop()
 
         info, canonical_key = lookup_disease_info(predicted_raw)
-
         temp, humidity, rain = get_realtime_weather(lat, lon)
         spread_risk, spread_detail = evaluate_spread_forecast(info, temp, humidity, rain)
 
         col1, col2 = st.columns(2)
 
         with col1:
-            st.image(image, caption="Hình ảnh lá đã tải lên", use_container_width=True)
+            st.image(image, caption="Hình ảnh lá đã kiểm tra đạt chuẩn", use_container_width=True)
 
         with col2:
             if canonical_key == "healthy":
@@ -510,12 +521,18 @@ def main():
             st.write(f"**Tác nhân gây bệnh:** {info['type']}")
             st.write(f"**Vị trí địa lý:** {selected_province} (Tọa độ: {lat}°N, {lon}°E)")
 
-            # CẢNH BÁO NHẸ KHI ĐỘ TIN CẬY TỪ 65% ĐẾN 75%
-            if 65.0 <= conf_percent < 75.0:
+            # KHỐI CẢNH BÁO KHI ĐỘ TIN CẬY TRUNG BÌNH (60% - 75%)
+            if conf_percent < 75.0:
                 st.warning(
-                    f"⚠️ **Lưu ý (Độ tin cậy vừa phải - {conf_percent:.2f}%):**\n\n"
-                    "AI phân tích kết quả ở mức tương đối. Bạn nên đối chiếu kỹ triệu chứng thực tế bên dưới."
+                    f"⚠️ **Cảnh báo (Độ tin cậy AI trung bình - {conf_percent:.2f}%):**\n\n"
+                    "Mô hình AI đang phân vân giữa các khả năng sau. Hãy kiểm tra các khả năng bên dưới:"
                 )
+                for i in range(min(3, len(class_names))):
+                    idx = top3_idx[i].item()
+                    prob = top3_prob[i].item() * 100
+                    raw_name = class_names[idx]
+                    top_info, _ = lookup_disease_info(raw_name)
+                    st.write(f"- **Top {i+1}:** {top_info['vn_name']} (`{prob:.2f}%`)")
 
         st.markdown("---")
         
