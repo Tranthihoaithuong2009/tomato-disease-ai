@@ -457,7 +457,7 @@ def main():
         st.markdown("---")
         
         # Mở ảnh bằng PIL
-        image = (uploaded_file).convert('RGB')
+        image = Image.open(uploaded_file).convert('RGB')
 
         # KIỂM TRA CHẤT LƯỢNG ẢNH BẰNG OPENCV
         is_valid_quality, quality_msg = check_image_quality(image)
