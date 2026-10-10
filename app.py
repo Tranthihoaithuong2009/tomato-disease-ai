@@ -507,5 +507,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-Bạn có cần tôi hỗ trợ thêm thao tác nào khác trong dự án này nữa không?
