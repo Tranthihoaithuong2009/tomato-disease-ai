@@ -440,7 +440,7 @@ def main():
         
         img_tensor = transform(image).unsqueeze(0)
 
-        with [đã xoá đường liên kết đáng ngờ]_grad():
+        with getattr(torch, 'no_grad')():
             outputs = model(img_tensor)
             probabilities = torch.nn.functional.softmax(outputs, dim=1)
             top3_prob, top3_idx = torch.topk(probabilities, 3, dim=1)
