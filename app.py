@@ -445,8 +445,8 @@ def main():
             probabilities = torch.nn.functional.softmax(outputs, dim=1)
             top3_prob, top3_idx = torch.topk(probabilities, 3, dim=1)
 
-        confidence = top3_prob.item()
-        conf_percent = confidence * 100
+        confidence = top3_prob[0][0].item()
+        predicted_raw = class_names[top3_idx[0][0].item()]
         predicted_raw = class_names[top3_idx.item()]
 
         info, canonical_key = lookup_disease_info(predicted_raw)
