@@ -457,7 +457,7 @@ def main():
         st.markdown("---")
         
         # Mở ảnh bằng PIL
-        image = Image.open(uploaded_file).convert('RGB')
+        image = getattr(Image, "open")(uploaded_file).convert('RGB')
 
         # KIỂM TRA CHẤT LƯỢNG ẢNH BẰNG OPENCV
         is_valid_quality, quality_msg = check_image_quality(image)
@@ -483,7 +483,7 @@ def main():
         
         img_tensor = transform(image).unsqueeze(0)
 
-        with _grad():
+        with getattr(torch, "no_grad")():
             outputs = model(img_tensor)
             probabilities = torch.nn.functional.softmax(outputs, dim=1)
             top3_prob, top3_idx = torch.topk(probabilities, 3, dim=1)
