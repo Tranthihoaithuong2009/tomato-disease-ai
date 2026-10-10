@@ -488,9 +488,9 @@ def main():
             probabilities = torch.nn.functional.softmax(outputs, dim=1)
             top3_prob, top3_idx = torch.topk(probabilities, 3, dim=1)
 
-        confidence = top3_prob.item()
+        confidence = top3_prob[0][0].item()
         conf_percent = confidence * 100
-        predicted_raw = class_names[top3_idx.item()]
+        predicted_raw = class_names[top3_idx[0][0].item()]
 
         # Nếu độ tin cậy quá thấp (< 60%), yêu cầu người dùng chụp lại
         if conf_percent < 60.0:
