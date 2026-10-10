@@ -447,7 +447,6 @@ def main():
 
         confidence = top3_prob[0][0].item()
         predicted_raw = class_names[top3_idx[0][0].item()]
-        predicted_raw = class_names[top3_idx.item()]
 
         info, canonical_key = lookup_disease_info(predicted_raw)
         temp, humidity, rain = get_realtime_weather(lat, lon)
