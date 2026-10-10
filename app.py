@@ -445,7 +445,8 @@ def main():
             probabilities = torch.nn.functional.softmax(outputs, dim=1)
             top3_prob, top3_idx = torch.topk(probabilities, 3, dim=1)
 
-        confidence = top3_prob[0][0].item()
+        confidence = top3_prob[0][0].item() 
+        conf_percent = confidence * 100 
         predicted_raw = class_names[top3_idx[0][0].item()]
 
         info, canonical_key = lookup_disease_info(predicted_raw)
@@ -463,7 +464,7 @@ def main():
             else:
                 st.error(f"**Kết quả:** {info['vn_name']}")
 
-            st.metric(label="Độ tin cậy của AI:", value=f"{float(conf_percent):.2f}%")
+            st.metric(label="Độ tin cậy của AI:", value=f"{conf_percent:.2f}%")
             st.write(f"**Tác nhân gây bệnh:** {info['type']}")
             st.write(f"**Vị trí địa lý:** {selected_province} (Tọa độ: {lat}°N, {lon}°E)")
 
