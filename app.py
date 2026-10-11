@@ -474,8 +474,8 @@ def main():
                     "Mô hình AI đang phân vân giữa các khả năng sau:"
                 )
                 for i in range(min(3, len(class_names))):
-                    idx = top3_idx[i].item()
-                    prob = top3_prob[i].item() * 100
+                    idx = top3_idx[0][i].item() 
+                    prob = top3_prob[0][i].item() * 100
                     raw_name = class_names[idx]
                     top_info, _ = lookup_disease_info(raw_name)
                     st.write(f"- **Top {i+1}:** {top_info['vn_name']} (`{prob:.2f}%`)")
