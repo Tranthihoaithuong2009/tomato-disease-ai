@@ -394,7 +394,7 @@ def get_ai_model():
 # 7. GIAO DIỆN CHÍNH TRÊN TRANG WEB
 # ---------------------------------------------------------
 def main():
-    st.title("Chẩn Đoán Bệnh Lá Cà Chua Bằng AI")
+    st.title("Hệ Thống Chẩn Đoán Bệnh Lá Cà Chua")
     st.write("Ứng dụng chẩn đoán bệnh lá cà chua thông minh, tra cứu thời tiết thời gian thực và dự báo nguy cơ lây lan dịch bệnh.")
     st.markdown("---")
 
